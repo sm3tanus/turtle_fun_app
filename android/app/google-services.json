@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "33460470729",
+    "project_id": "turtle-fun-app",
+    "storage_bucket": "turtle-fun-app.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:33460470729:android:269a51570f216d10e09e18",
+        "android_client_info": {
+          "package_name": "com.example.turtle_fun"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAQlecr8Yjwg-0pZU221MgQDTKlYPsZ0Oo"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
