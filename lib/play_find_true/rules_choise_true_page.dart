@@ -15,7 +15,7 @@ class RulesChoiseTrue extends StatefulWidget {
 
 class _RulesChoiseTrueState extends State<RulesChoiseTrue> {
   bool visibility = false;
-  bool visibilityPlay = false;
+  bool visibilityWelcome = false;
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -169,29 +169,40 @@ class _RulesChoiseTrueState extends State<RulesChoiseTrue> {
                     child: ElevatedButton(
                       onPressed: () async {
                         Room room = Room();
-                        room.addUsersToPlayRoom(
-                            widget.nameRoom, widget.nameUser);
-                        room.setUserNavigateTrue(
-                            widget.nameRoom, widget.nameUser);
-                        if (await room.checkLeaderInRoom(widget.nameRoom)) {
-                          if (await room.navigate(widget.nameRoom) &&
-                              widget.nameRoom.isNotEmpty &&
-                              widget.nameUser.isNotEmpty) {
-                            room.addNameToRoom(widget.nameRoom, "НайдиИстину");
-                            Navigator.push(
-                              context,
-                              MaterialPageRoute(
-                                builder: (context) => FindTrue(
-                                  nameRoom: widget.nameRoom,
-                                  nameUser: widget.nameUser,
-                                ),
-                              ),
-                            );
-                          }
+                        if (await room.checkUserPlayInRoom(
+                            widget.nameRoom, widget.nameUser)) {
+                          room.addUsersToPlayRoom(
+                              widget.nameRoom, widget.nameUser);
+                          room.setUserNavigateTrue(
+                              widget.nameRoom, widget.nameUser);
+                         setState(() {
+                           visibilityWelcome = true;
+                         });
                         } else {
                           setState(() {
-                            visibility = true;
-                          });
+                           visibilityWelcome = false;
+                         });
+                          if (await room.checkLeaderInRoom(widget.nameRoom)) {
+                            if (await room.navigate(widget.nameRoom) &&
+                                widget.nameRoom.isNotEmpty &&
+                                widget.nameUser.isNotEmpty) {
+                              room.addNameToRoom(
+                                  widget.nameRoom, "НайдиИстину");
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (context) => FindTrue(
+                                    nameRoom: widget.nameRoom,
+                                    nameUser: widget.nameUser,
+                                  ),
+                                ),
+                              );
+                            }
+                          } else {
+                            setState(() {
+                              visibility = true;
+                            });
+                          }
                         }
                       },
                       child: const Text(
@@ -209,8 +220,20 @@ class _RulesChoiseTrueState extends State<RulesChoiseTrue> {
                 height: MediaQuery.of(context).size.height * 0.02,
               ),
               Visibility(
+                visible: visibilityWelcome,
+                child: const Text(
+                  'Добро пожаловать!\nНажмите играть еще раз.',
+                  textAlign: TextAlign.center,
+                  style: TextStyle(color: Colors.red, fontSize: 20),
+                ),
+              ),
+              SizedBox(
+                height: MediaQuery.of(context).size.height * 0.02,
+              ),
+              Visibility(
                 visible: visibility,
                 child: const Text(
+                  textAlign: TextAlign.center,
                   'Дождитесь лидера комнаты!',
                   style: TextStyle(color: Colors.red, fontSize: 20),
                 ),

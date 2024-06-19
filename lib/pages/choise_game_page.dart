@@ -150,7 +150,7 @@ class _ChoiseGameState extends State<ChoiseGame> {
                         'УЗНАЙ ИСТИНУ',
                         style: TextStyle(
                           color: Color(0xff1E5541),
-                          fontSize: 30,
+                          fontSize: 27,
                         ),
                       ),
                     ],
@@ -178,7 +178,7 @@ class _ChoiseGameState extends State<ChoiseGame> {
                         'АНТИМАФИЯ',
                         style: TextStyle(
                           color: Color(0xff1E5541),
-                          fontSize: 30,
+                          fontSize: 27,
                         ),
                       ),
                     ],
@@ -206,7 +206,7 @@ class _ChoiseGameState extends State<ChoiseGame> {
                         'ПРИШЕЛЕЦ',
                         style: TextStyle(
                           color: Color(0xff1E5541),
-                          fontSize: 30,
+                          fontSize: 27,
                         ),
                       ),
                     ],

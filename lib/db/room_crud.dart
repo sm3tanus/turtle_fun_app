@@ -20,6 +20,13 @@ class Room {
         .collection('users')
         .doc()
         .set({'name': leader, 'game': 1});
+
+    await FirebaseFirestore.instance
+        .collection('rooms')
+        .doc(docId)
+        .collection('usersPlay')
+        .doc()
+        .set({'name': leader, 'navigate': false, 'ready': false});
   }
 
   Future<void> addUsersToRoom(String name, String nameUser) async {
@@ -160,7 +167,7 @@ class Room {
       String leader = roomDoc['leader'];
       CollectionReference usersPlayRef =
           roomDoc.reference.collection('usersPlay');
-        
+
       QuerySnapshot usersPlaySnapshot = await usersPlayRef
           .where('name', isEqualTo: leader)
           .where('navigate', isEqualTo: true)
@@ -174,7 +181,6 @@ class Room {
     } else {
       return false;
     }
-    
   }
 
   nameGame(String nameRoom) async {
@@ -188,5 +194,21 @@ class Room {
         return data['namePlay'];
       }
     }
+  }
+
+  checkUserPlayInRoom(String nameRoom, String nameUser) async {
+    QuerySnapshot roomSnapshot = await FirebaseFirestore.instance
+        .collection('rooms')
+        .where('name', isEqualTo: nameRoom)
+        .get();
+
+      DocumentReference roomRef = roomSnapshot.docs.first.reference;
+
+      QuerySnapshot userSnapshot = await roomRef
+          .collection('usersPlay')
+          .where('name', isEqualTo: nameUser)
+          .get();
+        return userSnapshot.docs.isEmpty;
+
   }
 }

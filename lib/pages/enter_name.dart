@@ -135,7 +135,7 @@ class _EnterNameState extends State<EnterName> {
                       'ПРИСОЕДИНИТЬСЯ',
                       style: TextStyle(
                         color: Color(0xff1E5541),
-                        fontSize: 22,
+                        fontSize: 20,
                       ),
                     ),
                   ),

@@ -35,8 +35,8 @@ class _ListRoomsState extends State<ListRooms> {
     var snapshot = await FirebaseFirestore.instance.collection('rooms').get();
     setState(() {
       rooms = snapshot.docs;
-      filter = rooms.where((doc) => doc['name'].toLowerCase() != widget.nameRoom.toLowerCase()).toList();
-      user = rooms.where((doc) => doc['name'].toLowerCase() == widget.nameRoom.toLowerCase()).toList();
+      filter = rooms.where((doc) => doc['name'] != widget.nameRoom).toList();
+      user = rooms.where((doc) => doc['name']== widget.nameRoom).toList();
     });
   }
 
@@ -97,7 +97,7 @@ class _ListRoomsState extends State<ListRooms> {
                   onChanged: ((value) {
                     if (value.isNotEmpty) {
                       filter = rooms
-                          .where((i) => i['name'].contains(value.toLowerCase()))
+                          .where((i) => i['name'].contains(value))
                           .toList();
                     } else {
                       filter = rooms

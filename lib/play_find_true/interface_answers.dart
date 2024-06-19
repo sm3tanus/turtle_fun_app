@@ -22,6 +22,8 @@ class _FindTrueState extends State<FindTrue> {
   TextEditingController _answer = TextEditingController();
   bool visibility = false;
   bool allUsersReady = false;
+  int i = 0;
+  bool visibilityWait = false;
 
   @override
   void initState() {
@@ -34,24 +36,54 @@ class _FindTrueState extends State<FindTrue> {
 
   void nextQuestion() {
     setState(() {
-      if (currentIndex < facts!.length - 1) {
-        currentIndex++;
-      } else {
+      currentIndex++;
 
-        void _setUserReady() {
-          FirebaseFirestore.instance
-              .collection('rooms')
-              .doc(widget.nameRoom)
-              .collection('usersPlay')
-              .doc(widget.nameUser)
-              .update({'ready': true});
-        }
-      }
-      question = facts![currentIndex];
+      question = facts![currentIndex - 1];
     });
   }
 
- 
+  Future<void> _setUserReady() async {
+    QuerySnapshot roomSnapshot = await FirebaseFirestore.instance
+        .collection('rooms')
+        .where('name', isEqualTo: widget.nameRoom)
+        .get();
+
+    DocumentReference roomRef = roomSnapshot.docs.first.reference;
+
+    QuerySnapshot querySnapshot = await roomRef
+        .collection('usersPlay')
+        .where('name', isEqualTo: widget.nameUser)
+        .get();
+
+    if (querySnapshot.docs.isNotEmpty) {
+      String userDocId = querySnapshot.docs.first.id;
+
+      await roomRef
+          .collection('usersPlay')
+          .doc(userDocId)
+          .update({'ready': true});
+    }
+  }
+
+  Future areAllUsersReady() async {
+    QuerySnapshot roomSnapshot = await FirebaseFirestore.instance
+        .collection('rooms')
+        .where('name', isEqualTo: widget.nameRoom)
+        .get();
+
+    DocumentReference roomRef = roomSnapshot.docs.first.reference;
+
+    QuerySnapshot querySnapshot = await roomRef
+        .collection('usersPlay')
+        .where('ready', isEqualTo: false)
+        .get();
+
+    if (querySnapshot.docs.isEmpty) {
+      setState(() {
+        allUsersReady = true;
+      });
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -109,12 +141,28 @@ class _FindTrueState extends State<FindTrue> {
                 child: ElevatedButton(
                   onPressed: () {
                     Answer answer = Answer();
-                    if (_answer.text.isNotEmpty) {
-                      answer.addAnswerToRoom(widget.nameRoom, widget.nameUser,
-                          _answer.text, currentIndex);
-                      nextQuestion();
+                    if (i < facts!.length) {
+                      i++;
+                      if (_answer.text.isNotEmpty) {
+                        setState(() {
+                          visibility = false;
+                        });
+                        answer.addAnswerToRoom(widget.nameRoom, widget.nameUser,
+                            _answer.text, currentIndex);
+                        nextQuestion();
+                        _answer.clear();
+                      } else {
+                        setState(() {
+                          visibility = true;
+                        });
+                      }
+                    } else {
                       _answer.clear();
-               
+                      setState(() {
+                        visibilityWait = true;
+                      });
+                      _setUserReady();
+                      areAllUsersReady();
                       if (allUsersReady) {
                         Navigator.push(
                           context,
@@ -126,10 +174,6 @@ class _FindTrueState extends State<FindTrue> {
                           ),
                         );
                       }
-                    } else {
-                      setState(() {
-                        visibility = true;
-                      });
                     }
                   },
                   child: const Text(
@@ -148,6 +192,16 @@ class _FindTrueState extends State<FindTrue> {
                 visible: visibility,
                 child: const Text(
                   'Введите ответ!',
+                  style: TextStyle(color: Colors.red, fontSize: 20),
+                ),
+              ),
+              SizedBox(
+                height: MediaQuery.of(context).size.width * 0.03,
+              ),
+              Visibility(
+                visible: visibilityWait,
+                child: const Text(
+                  'Дождитесь остальных!',
                   style: TextStyle(color: Colors.red, fontSize: 20),
                 ),
               ),

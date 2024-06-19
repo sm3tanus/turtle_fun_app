@@ -155,10 +155,10 @@ class _MainPageState extends State<MainPage> {
                       Room room = Room();
                       if (_name.text.isNotEmpty &&
                           !await room
-                              .checkInRoom(_nameRoom.text.toLowerCase()) &&
+                              .checkInRoom(_nameRoom.text) &&
                           _nameRoom.text.isNotEmpty) {
-                        room.createRoom(_name.text.toLowerCase(),
-                            _nameRoom.text.toLowerCase());
+                        room.createRoom(_name.text,
+                            _nameRoom.text);
 
                         Navigator.push(
                           context,
@@ -170,7 +170,7 @@ class _MainPageState extends State<MainPage> {
                           ),
                         );
                       } else if (await room
-                          .checkInRoom(_nameRoom.text.toLowerCase())) {
+                          .checkInRoom(_nameRoom.text)) {
                         setState(() {
                           visibility2 = true;
                         });
@@ -193,9 +193,10 @@ class _MainPageState extends State<MainPage> {
                     },
                     child: const Text(
                       'НАЧАТЬ ИГРУ',
+                      textAlign: TextAlign.center,
                       style: TextStyle(
                         color: Color(0xff1E5541),
-                        fontSize: 30,
+                        fontSize: 20,
                       ),
                     ),
                   ),
