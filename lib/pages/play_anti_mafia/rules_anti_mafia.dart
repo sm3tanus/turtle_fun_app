@@ -174,42 +174,15 @@ class _RulesAntiMafiaState extends State<RulesAntiMafia> {
                     height: MediaQuery.of(context).size.height * 0.07,
                     child: ElevatedButton(
                       onPressed: () async {
-                        Room room = Room();
-                        if (await room.checkUserPlayInRoom(
-                            widget.nameRoom, widget.nameUser)) {
-                          room.addUsersToPlayRoom(
-                              widget.nameRoom, widget.nameUser);
-                          room.setUserNavigateTrue(
-                              widget.nameRoom, widget.nameUser);
-                          setState(() {
-                            visibilityWelcome = true;
-                          });
-                        } else {
-                          setState(() {
-                            visibilityWelcome = false;
-                          });
-                          if (await room.checkLeaderInRoom(widget.nameRoom)) {
-                            if (await room.navigate(widget.nameRoom) &&
-                                widget.nameRoom.isNotEmpty &&
-                                widget.nameUser.isNotEmpty) {
-                              room.addNameToRoom(
-                                  widget.nameRoom, "НайдиИстину");
-                              Navigator.push(
-                                context,
-                                MaterialPageRoute(
-                                  builder: (context) => AntiMafiaGamePage(
-                                    nameRoom: widget.nameRoom,
-                                    nameUser: widget.nameUser,
-                                  ),
-                                ),
-                              );
-                            }
-                          } else {
-                            setState(() {
-                              visibility = true;
-                            });
-                          }
-                        }
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => AntiMafiaGamePage(
+                              nameRoom: widget.nameRoom,
+                              nameUser: widget.nameUser,
+                            ),
+                          ),
+                        );
                       },
                       child: const Text(
                         'ИГРАТЬ',

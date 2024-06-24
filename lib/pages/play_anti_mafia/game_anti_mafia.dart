@@ -5,6 +5,7 @@ import 'dart:math';
 class AntiMafiaGamePage extends StatefulWidget {
   String nameRoom;
   String nameUser;
+
   AntiMafiaGamePage(
       {super.key, required this.nameRoom, required this.nameUser});
 
@@ -35,52 +36,65 @@ class _AntiMafiaGamePageState extends State<AntiMafiaGamePage> {
   bool isRobberyStarted = false;
   bool isRobberyFinished = false;
   bool isRobberySuccess = true;
-  int currentUserIndex = -1;
+  int currentUserIndex = 0;
   List<Map<String, dynamic>> usersPlay = [];
+  bool isUsersPlayLoaded = false;
 
   @override
   void initState() {
     super.initState();
-    _assignRoles();
+    _fetchUsersPlay();
   }
 
   Future<void> _fetchUsersPlay() async {
-    QuerySnapshot querySnapshot = await FirebaseFirestore.instance
+    var roomSnapshot = await FirebaseFirestore.instance
         .collection('rooms')
-        .doc(widget.nameRoom)
-        .collection('usersPlay')
+        .where('name', isEqualTo: widget.nameRoom)
         .get();
-    usersPlay = querySnapshot.docs
-        .map((doc) => doc.data() as Map<String, dynamic>)
-        .toList();
+
+    if (roomSnapshot.docs.isNotEmpty) {
+      var roomDocRef = roomSnapshot.docs.first.reference;
+
+      var usersPlaySnapshot = await roomDocRef.collection('usersPlay').get();
+
+      usersPlay = usersPlaySnapshot.docs
+          .map((doc) => doc.data() as Map<String, dynamic>)
+          .toList();
+
+      isUsersPlayLoaded = true; // Устанавливаем флаг после загрузки
+      _assignRoles();
+      _findCurrentUserIndex();
+    }
     setState(() {});
   }
 
   void _assignRoles() {
-    roles = List.generate(usersPlay.length, (index) => 'Грабитель');
+    if (isUsersPlayLoaded && usersPlay.isNotEmpty) {
+      roles = List.generate(usersPlay.length, (index) => 'Грабитель');
 
-    final random = Random();
+      final random = Random();
 
-    // Выбираем двух осведомителей (только при первом запуске)
-    for (int i = 0; i < 1; i++) {
-      final randomIndex = random.nextInt(usersPlay.length);
-      final randomIndex2 = random.nextInt(usersPlay.length);
-      if (roles[randomIndex] != 'Осведомитель' &&
-          roles[randomIndex2] != 'Осведомитель' &&
-          randomIndex2 != randomIndex &&
-          usersPlay[randomIndex2]['name'] != widget.nameUser) {
-        roles[randomIndex] = 'Осведомитель';
-        firstInformantIndex = randomIndex;
-        roles[randomIndex2] = 'Осведомитель';
-        secondInformantIndex = randomIndex2;
+      // Выбираем двух осведомителей (только при первом запуске)
+      for (int i = 0; i < 1; i++) {
+        final randomIndex = random.nextInt(usersPlay.length);
+        final randomIndex2 = random.nextInt(usersPlay.length);
+        if (roles[randomIndex] != 'Осведомитель' &&
+            roles[randomIndex2] != 'Осведомитель' &&
+            randomIndex2 != randomIndex &&
+            usersPlay[randomIndex2]['name'] != widget.nameUser) {
+          roles[randomIndex] = 'Осведомитель';
+          firstInformantIndex = randomIndex;
+          roles[randomIndex2] = 'Осведомитель';
+          secondInformantIndex = randomIndex2;
 
-        secondInformant = usersPlay[randomIndex2]['name'];
-      } else {
-        i--;
+          secondInformant = usersPlay[randomIndex2]['name'];
+        } else {
+          i--;
+        }
       }
+
+      _chooseLeader();
     }
-    // Выбираем лидера (только при первом запуске)
-    _chooseLeader();
   }
 
   void _chooseLeader() {
@@ -90,14 +104,12 @@ class _AntiMafiaGamePageState extends State<AntiMafiaGamePage> {
 
   void _addToRobberyTeam(int index) {
     if (robberyTeam.contains(index)) {
-      // Если игрок уже в команде, удаляем его
       robberyTeam.remove(index);
     } else if (robberyTeam.length < games[gameCount - 1]['membersCount'] &&
         (gameCount == 1)) {
-      // Если игрок не в команде, добавляем его
       robberyTeam.add(index);
     }
-    // Вызываем setState только после изменения gameCount
+
     setState(() {});
   }
 
@@ -109,25 +121,19 @@ class _AntiMafiaGamePageState extends State<AntiMafiaGamePage> {
 
   void _onRobberyResult(bool success) {
     if (!isRobberyFinished) {
-      // Проверяем, все ли игроки проголосовали
       if (usersPlay.every((user) =>
-          (roles[usersPlay.indexOf(user)] == 'Осведомитель' &&
-              !success) || // Осведомитель проваливает ограбление
+          (roles[usersPlay.indexOf(user)] == 'Осведомитель' && !success) ||
           (roles[usersPlay.indexOf(user)] != 'Осведомитель' && success))) {
-        // Грабитель голосует за успех
-        // Ограбление завершено
         setState(() {
           isRobberyFinished = true;
-          games[gameCount - 1]['result'] =
-              success; // Сохраняем результат ограбления
+          games[gameCount - 1]['result'] = success;
           if (gameCount < games.length) {
             gameCountPlus();
             isRobberyStarted = false;
             robberyTeam.clear();
             isRobberyFinished = false;
-            isRobberySuccess =
-                true; // Сбрасываем флаг результата для следующего раунда
-            _chooseLeader(); // Выбираем нового лидера перед началом следующего раунда
+            isRobberySuccess = true;
+            _chooseLeader();
           }
         });
       }
@@ -203,7 +209,6 @@ class _AntiMafiaGamePageState extends State<AntiMafiaGamePage> {
             ),
           ),
           SizedBox(height: 20),
-          // Информация о лидере и команде
           Card(
             child: Padding(
               padding: const EdgeInsets.all(8.0),
@@ -228,13 +233,10 @@ class _AntiMafiaGamePageState extends State<AntiMafiaGamePage> {
             ),
           ),
           SizedBox(height: 20),
-          // Список игроков
           Expanded(
             child: currentUserIndex == leaderIndex
-                // Если игрок лидер, то показываем всех игроков
                 ? Column(
                     children: [
-                      // Кнопка "Начать ограбление"
                       if (!isRobberyStarted &&
                           robberyTeam.length ==
                               games[gameCount - 1]['membersCount'])
@@ -245,7 +247,6 @@ class _AntiMafiaGamePageState extends State<AntiMafiaGamePage> {
                             child: const Text('Начать ограбление'),
                           ),
                         ),
-                      // Список игроков
                       Expanded(
                         child: ListView.builder(
                           itemCount: usersPlay.length,
@@ -265,7 +266,6 @@ class _AntiMafiaGamePageState extends State<AntiMafiaGamePage> {
                       ),
                     ],
                   )
-                // Если игрок не лидер, то показываем сообщение
                 : Center(
                     child: Text(
                       'Ожидайте выбора лидера',
@@ -273,21 +273,18 @@ class _AntiMafiaGamePageState extends State<AntiMafiaGamePage> {
                     ),
                   ),
           ),
-          // Кнопки "Успех" и "Провал" для осведомителей и грабителей
           if (isRobberyStarted)
             Padding(
               padding: const EdgeInsets.all(16.0),
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  // Кнопка "Успех" для осведомителей и грабителей
                   if (roles[currentUserIndex] == 'Осведомитель' ||
                       robberyTeam.contains(currentUserIndex))
                     ElevatedButton(
                       onPressed: () => _onRobberyResult(true),
                       child: const Text('Успех'),
                     ),
-                  // Кнопка "Провал" для осведомителей
                   if (roles[currentUserIndex] == 'Осведомитель')
                     ElevatedButton(
                       onPressed: () => _onRobberyResult(false),
