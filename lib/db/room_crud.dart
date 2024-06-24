@@ -84,6 +84,33 @@ class Room {
     }
   }
 
+  Future<void> deleteUserInRoom(String nameRoom, String nameUser) async {
+    var querySnapshot = await FirebaseFirestore.instance
+        .collection('rooms')
+        .where('name', isEqualTo: nameRoom)
+        .get();
+    var docId = querySnapshot.docs.first.id;
+
+    var user = await FirebaseFirestore.instance
+        .collection('rooms')
+        .doc(docId)
+        .collection('users')
+        .where('name', isEqualTo: nameUser)
+        .get();
+    var userPlay = await FirebaseFirestore.instance
+        .collection('rooms')
+        .doc(docId)
+        .collection('usersPlay')
+        .where('name', isEqualTo: nameUser)
+        .get();
+    for (var doc in userPlay.docs) {
+      await doc.reference.delete();
+    }
+    for (var doc in user.docs) {
+      await doc.reference.delete();
+    }
+  }
+
   Future fetchRooms(String nameRoom) async {
     var snapshot = await FirebaseFirestore.instance.collection('rooms').get();
 
@@ -202,13 +229,12 @@ class Room {
         .where('name', isEqualTo: nameRoom)
         .get();
 
-      DocumentReference roomRef = roomSnapshot.docs.first.reference;
+    DocumentReference roomRef = roomSnapshot.docs.first.reference;
 
-      QuerySnapshot userSnapshot = await roomRef
-          .collection('usersPlay')
-          .where('name', isEqualTo: nameUser)
-          .get();
-        return userSnapshot.docs.isEmpty;
-
+    QuerySnapshot userSnapshot = await roomRef
+        .collection('usersPlay')
+        .where('name', isEqualTo: nameUser)
+        .get();
+    return userSnapshot.docs.isEmpty;
   }
 }

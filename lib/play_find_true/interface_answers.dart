@@ -170,6 +170,7 @@ class _FindTrueState extends State<FindTrue> {
                             builder: (context) => AllAnswers(
                               nameRoom: widget.nameRoom,
                               nameUser: widget.nameUser,
+                              currentIndex: 0,
                             ),
                           ),
                         );

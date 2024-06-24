@@ -1,7 +1,5 @@
-import 'dart:math';
 
 class ProcessFind {
-  Random random = Random();
 
   var answers = [
     "религию",
