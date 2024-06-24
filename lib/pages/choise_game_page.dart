@@ -3,6 +3,8 @@ import 'package:turtle_fun/db/room_crud.dart';
 import 'package:turtle_fun/pages/enter_name.dart';
 import 'package:turtle_fun/pages/list_rooms.dart';
 import 'package:turtle_fun/pages/main_page.dart';
+import 'package:turtle_fun/pages/play_anti_mafia/members_anti_mafia.dart';
+import 'package:turtle_fun/pages/play_anti_mafia/rules_anti_mafia.dart';
 import 'package:turtle_fun/pages/play_traitor/rules_traitor.dart';
 import 'package:turtle_fun/play_find_true/interface_all_answers.dart';
 import 'package:turtle_fun/play_find_true/rules_choise_true_page.dart';
@@ -249,8 +251,16 @@ class _ChoiseGameState extends State<ChoiseGame> {
                       width: MediaQuery.of(context).size.width * 0.9,
                       height: MediaQuery.of(context).size.height * 0.15,
                       child: ElevatedButton(
-                        onPressed: () {
-                          Navigator.popAndPushNamed(context, '/rules');
+                        onPressed: () async {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) => RulesAntiMafia(
+                                nameRoom: widget.nameRoom,
+                                nameUser: widget.nameUser,
+                              ),
+                            ),
+                          );
                         },
                         child: Row(
                           children: [

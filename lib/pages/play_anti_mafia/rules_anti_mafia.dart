@@ -1,19 +1,25 @@
 import 'package:flutter/material.dart';
 import 'package:turtle_fun/db/room_crud.dart';
 import 'package:turtle_fun/pages/choise_game_page.dart';
+import 'package:turtle_fun/pages/play_anti_mafia/game_anti_mafia.dart';
 import 'package:turtle_fun/play_find_true/interface_answers.dart';
 
 // ignore: must_be_immutable
-class RulesChoiseTrue extends StatefulWidget {
+class RulesAntiMafia extends StatefulWidget {
   String nameRoom;
   String nameUser;
-  RulesChoiseTrue({super.key, required this.nameRoom, required this.nameUser});
+
+  RulesAntiMafia({
+    super.key,
+    required this.nameRoom,
+    required this.nameUser,
+  });
 
   @override
-  State<RulesChoiseTrue> createState() => _RulesChoiseTrueState();
+  State<RulesAntiMafia> createState() => _RulesAntiMafiaState();
 }
 
-class _RulesChoiseTrueState extends State<RulesChoiseTrue> {
+class _RulesAntiMafiaState extends State<RulesAntiMafia> {
   bool visibility = false;
   bool visibilityWelcome = false;
   @override
@@ -70,7 +76,7 @@ class _RulesChoiseTrueState extends State<RulesChoiseTrue> {
                     ),
                     Flexible(
                       child: Text(
-                        'Каждому игроку дается один и тот же вопрос, на который игрок должен ответить максимально честно и приближенно к верному ответу.',
+                        'Грабители должны провести 5 ограблений, выбрав участников после обсуждения.',
                         style: TextStyle(fontSize: 20, color: Colors.white),
                       ),
                     ),
@@ -94,7 +100,7 @@ class _RulesChoiseTrueState extends State<RulesChoiseTrue> {
                     ),
                     Flexible(
                       child: Text(
-                        'Цель игры - найти и выбрать правильное утверждение, которое соответствует действительности.',
+                        'Полицейские осведомители должны мешать ограблениям и не выдать себя раньше времени.',
                         style: TextStyle(fontSize: 20, color: Colors.white),
                       ),
                     ),
@@ -118,7 +124,7 @@ class _RulesChoiseTrueState extends State<RulesChoiseTrue> {
                     ),
                     Flexible(
                       child: Text(
-                        'Игрок, за ответ которого проголосовало больше всего людей, побеждает.',
+                        'Участники голосуют после всех ограблений, пытаясь вычислить осведомителей.',
                         style: TextStyle(fontSize: 20, color: Colors.white),
                       ),
                     ),
@@ -191,7 +197,7 @@ class _RulesChoiseTrueState extends State<RulesChoiseTrue> {
                               Navigator.push(
                                 context,
                                 MaterialPageRoute(
-                                  builder: (context) => FindTrue(
+                                  builder: (context) => AntiMafiaGamePage(
                                     nameRoom: widget.nameRoom,
                                     nameUser: widget.nameUser,
                                   ),
