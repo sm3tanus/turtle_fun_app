@@ -3,6 +3,7 @@ import 'package:turtle_fun/db/room_crud.dart';
 import 'package:turtle_fun/pages/enter_name.dart';
 import 'package:turtle_fun/pages/list_rooms.dart';
 import 'package:turtle_fun/pages/main_page.dart';
+import 'package:turtle_fun/pages/play_traitor/rules_traitor.dart';
 import 'package:turtle_fun/play_find_true/interface_all_answers.dart';
 import 'package:turtle_fun/play_find_true/rules_choise_true_page.dart';
 
@@ -213,9 +214,10 @@ class _ChoiseGameState extends State<ChoiseGame> {
                             context,
                             MaterialPageRoute(
                               builder: (context) => AllAnswers(
-                                  nameRoom: widget.nameRoom,
-                                  nameUser: widget.nameUser,
-                                  currentIndex: 0,),
+                                nameRoom: widget.nameRoom,
+                                nameUser: widget.nameUser,
+                                currentIndex: 0,
+                              ),
                             ),
                           );
                         },
@@ -273,13 +275,78 @@ class _ChoiseGameState extends State<ChoiseGame> {
                   ),
                   SizedBox(height: MediaQuery.of(context).size.height * 0.02),
                   Visibility(
+                    visible: !inRoom,
+                    child: Container(
+                      width: MediaQuery.of(context).size.width * 0.9,
+                      height: 70,
+                      decoration: BoxDecoration(
+                        color: Color(0xffA1C096),
+                        borderRadius: BorderRadius.circular(25.0),
+                      ),
+                      child: InkWell(
+                        onTap: () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) => MainPage(
+                                nameRoom: widget.nameRoom,
+                                nameUser: widget.nameUser,
+                              ),
+                            ),
+                          );
+                        },
+                        child: const Padding(
+                          padding: EdgeInsets.symmetric(horizontal: 16.0),
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              SizedBox(
+                                width: 10,
+                              ),
+                              Text(
+                                'Создать комнату',
+                                style: TextStyle(
+                                  color: Color(0xff1E5541),
+                                  fontSize: 20,
+                                  fontWeight: FontWeight.w600,
+                                ),
+                                softWrap: true,
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
+                  Visibility(
+                    visible: !inRoom,
+                    child: SizedBox(
+                        height: MediaQuery.of(context).size.height * 0.02),
+                  ),
+                  Visibility(
                     visible: inRoom,
                     child: SizedBox(
                       width: MediaQuery.of(context).size.width * 0.9,
                       height: MediaQuery.of(context).size.height * 0.15,
                       child: ElevatedButton(
-                        onPressed: () {
-                          Navigator.popAndPushNamed(context, '/rules');
+                        onPressed: () async {
+                          // Navigator.push(
+                          //   context,
+                          //   MaterialPageRoute(
+                          //     builder: (context) => RulesChoiseTrue(
+                          //         nameRoom: widget.nameRoom,
+                          //         nameUser: widget.nameUser),
+                          //   ),
+                          // );
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) => RulesTraitor(
+                                nameRoom: widget.nameRoom,
+                                nameUser: widget.nameUser,
+                              ),
+                            ),
+                          );
                         },
                         child: Row(
                           children: [
