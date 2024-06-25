@@ -57,6 +57,11 @@ class _TraitorGamePageState extends State<TraitorGamePage> {
       ["Красное", "Синее", "Зеленое", "Желтое"],
       1,
     ),
+    GameQuestion(
+      "Какого цвета небо?",
+      ["Красное", "Синее", "Зеленое", "Желтое"],
+      1,
+    ),
   ];
 
   @override
