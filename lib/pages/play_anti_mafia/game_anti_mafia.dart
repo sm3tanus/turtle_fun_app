@@ -326,34 +326,30 @@ class _AntiMafiaGamePageState extends State<AntiMafiaGamePage> {
                       ),
               ),
               // Кнопки "Успех" и "Провал" для осведомителей и грабителей
-              if (isRobberyStarted)
-                Padding(
-                  padding: const EdgeInsets.all(16.0),
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      // Кнопка "Успех" для осведомителей и грабителей
-                      if (roles[currentUserIndex] == 'Осведомитель' ||
-                          robberyTeam.contains(currentUserIndex))
-                        ElevatedButton(
-                          onPressed: () {
-                            _onRobberyResult(true);
-                            print(usersGameResult['firstRound']['result']);
-                          },
-                          child: const Text('Успех'),
-                        ),
-                      // Кнопка "Провал" для осведомителей
-                      if (roles[currentUserIndex] == 'Осведомитель')
-                        ElevatedButton(
-                          onPressed: () {
-                            _onRobberyResult(false);
-                            print(usersGameResult['firstRound']['result']);
-                          },
-                          child: const Text('Провал'),
-                        ),
-                    ],
+
+              Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  // Кнопка "Успех" для осведомителей и грабителей
+
+                  ElevatedButton(
+                    onPressed: () {
+                      _onRobberyResult(true);
+                      print(usersGameResult['firstRound']['result']);
+                    },
+                    child: const Text('Успех'),
                   ),
-                ),
+                  // Кнопка "Провал" для осведомителей
+
+                  ElevatedButton(
+                    onPressed: () {
+                      _onRobberyResult(false);
+                      print(usersGameResult['firstRound']['result']);
+                    },
+                    child: const Text('Провал'),
+                  ),
+                ],
+              ),
             ],
           ),
         ));
