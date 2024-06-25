@@ -187,6 +187,7 @@ class _ListRoomsState extends State<ListRooms> {
                                     await room.deleteRoom(widget.nameRoom);
                                   }
                                   Navigator.push(
+                                    
                                     context,
                                     MaterialPageRoute(
                                       builder: (context) => ChoiseGame(

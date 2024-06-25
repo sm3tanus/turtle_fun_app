@@ -284,50 +284,51 @@ class _ChoiseGameState extends State<ChoiseGame> {
                     ),
                   ),
                   SizedBox(height: MediaQuery.of(context).size.height * 0.02),
-                  Visibility(
-                    visible: !inRoom,
-                    child: Container(
-                      width: MediaQuery.of(context).size.width * 0.9,
-                      height: 70,
-                      decoration: BoxDecoration(
-                        color: Color(0xffA1C096),
-                        borderRadius: BorderRadius.circular(25.0),
-                      ),
-                      child: InkWell(
-                        onTap: () {
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              builder: (context) => MainPage(
-                                nameRoom: widget.nameRoom,
-                                nameUser: widget.nameUser,
-                              ),
-                            ),
-                          );
-                        },
-                        child: const Padding(
-                          padding: EdgeInsets.symmetric(horizontal: 16.0),
-                          child: Row(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                              SizedBox(
-                                width: 10,
-                              ),
-                              Text(
-                                'Создать комнату',
-                                style: TextStyle(
-                                  color: Color(0xff1E5541),
-                                  fontSize: 20,
-                                  fontWeight: FontWeight.w600,
-                                ),
-                                softWrap: true,
-                              ),
-                            ],
-                          ),
-                        ),
-                      ),
-                    ),
-                  ),
+                  // Visibility(
+                  //   visible: !inRoom,
+                  //   child: Container(
+                  //     width: MediaQuery.of(context).size.width * 0.9,
+                  //     height: 70,
+                  //     decoration: BoxDecoration(
+                  //       color: Color(0xffA1C096),
+                  //       borderRadius: BorderRadius.circular(25.0),
+                  //     ),
+                  //     child: InkWell(
+                  //       onTap: () {
+                  //         Navigator.push(
+                  //           context,
+                  //           MaterialPageRoute(
+                  //             builder: (context) => MainPage(
+                  //               nameRoom: widget.nameRoom,
+                  //               nameUser: widget.nameUser,
+                  //             ),
+                  //           ),
+                  //         );
+                  //       },
+                  //       // child: const Padding(
+                  //       //   padding: EdgeInsets.symmetric(horizontal: 16.0),
+                  //       //   child: Row(
+                  //       //     mainAxisAlignment: MainAxisAlignment.center,
+                  //       //     children: [
+                  //       //       SizedBox(
+                  //       //         width: 10,
+                  //       //       ),
+                  //       //       Text(
+                  //       //         'Создать комнату',
+                  //       //         style: TextStyle(
+                  //       //           color: Color(0xff1E5541),
+                  //       //           fontSize: 20,
+                  //       //           fontWeight: FontWeight.w600,
+                  //       //         ),
+                  //       //         softWrap: true,
+                  //       //       ),
+                  //       //     ],
+                  //       //   ),
+                  //       // ),
+                  //     ),
+                  //   ),
+                  // ),
+              
                   Visibility(
                     visible: !inRoom,
                     child: SizedBox(

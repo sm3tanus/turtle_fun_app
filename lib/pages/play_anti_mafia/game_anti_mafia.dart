@@ -204,6 +204,7 @@ class _AntiMafiaGamePageState extends State<AntiMafiaGamePage> {
                   style: TextStyle(fontSize: 20, color: Colors.white),
                 ),
               ),
+
               SingleChildScrollView(
                 scrollDirection: Axis.horizontal,
                 child: Row(
