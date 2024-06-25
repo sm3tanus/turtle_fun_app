@@ -148,7 +148,7 @@ class _AntiMafiaGamePageState extends State<AntiMafiaGamePage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Color.fromRGBO(30, 85, 65, 1),
+      backgroundColor: const Color.fromRGBO(30, 85, 65, 1),
       body: SafeArea(
           child: Column(
         children: [
@@ -156,7 +156,7 @@ class _AntiMafiaGamePageState extends State<AntiMafiaGamePage> {
             child: Text(
               textAlign: TextAlign.center,
               'ОГРАБЛЕНИЕ   ${gameCount} / 5',
-              style: TextStyle(fontSize: 20, color: Colors.white),
+              style: const TextStyle(fontSize: 20, color: Colors.white),
             ),
           ),
           SingleChildScrollView(
@@ -190,7 +190,7 @@ class _AntiMafiaGamePageState extends State<AntiMafiaGamePage> {
                   .toList(),
             ),
           ),
-          SizedBox(height: 20),
+          const SizedBox(height: 20),
           Card(
             child: Padding(
               padding: const EdgeInsets.all(8.0),
@@ -208,7 +208,7 @@ class _AntiMafiaGamePageState extends State<AntiMafiaGamePage> {
               ),
             ),
           ),
-          SizedBox(height: 20),
+          const SizedBox(height: 20),
           Card(
             child: Padding(
               padding: const EdgeInsets.all(8.0),
@@ -217,11 +217,11 @@ class _AntiMafiaGamePageState extends State<AntiMafiaGamePage> {
                   children: [
                     Text(
                       'Лидер: ${usersPlay[leaderIndex]['name']}',
-                      style: TextStyle(fontWeight: FontWeight.bold),
+                      style: const TextStyle(fontWeight: FontWeight.bold),
                     ),
-                    SizedBox(height: 10),
-                    Text('Команда для ограбления:'),
-                    SizedBox(height: 5),
+                    const SizedBox(height: 10),
+                    const Text('Команда для ограбления:'),
+                    const SizedBox(height: 5),
                     Column(
                       children: robberyTeam
                           .map((index) => Text(usersPlay[index]['name']))
@@ -232,7 +232,7 @@ class _AntiMafiaGamePageState extends State<AntiMafiaGamePage> {
               ),
             ),
           ),
-          SizedBox(height: 20),
+          const SizedBox(height: 20),
           Expanded(
             child: currentUserIndex == leaderIndex
                 ? Column(
@@ -257,7 +257,7 @@ class _AntiMafiaGamePageState extends State<AntiMafiaGamePage> {
                                 title: Text(usersPlay[index]['name']),
                                 trailing: Text(
                                   roles[index],
-                                  style: TextStyle(color: Colors.white),
+                                  style: const TextStyle(color: Colors.white),
                                 ),
                               ),
                             );
@@ -266,7 +266,7 @@ class _AntiMafiaGamePageState extends State<AntiMafiaGamePage> {
                       ),
                     ],
                   )
-                : Center(
+                : const Center(
                     child: Text(
                       'Ожидайте выбора лидера',
                       style: TextStyle(color: Colors.white),
