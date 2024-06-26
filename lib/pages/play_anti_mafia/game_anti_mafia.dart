@@ -2,6 +2,9 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'dart:math';
 
+import 'package:turtle_fun/db/room_crud.dart';
+import 'package:turtle_fun/pages/play_anti_mafia/anti_mafia_crud.dart';
+
 class AntiMafiaGamePage extends StatefulWidget {
   String nameRoom;
   String nameUser;
@@ -11,11 +14,6 @@ class AntiMafiaGamePage extends StatefulWidget {
 
   @override
   State<AntiMafiaGamePage> createState() => _AntiMafiaGamePageState();
-}
-
-int roundCount = 1;
-void roundCountPlus() {
-  roundCount++;
 }
 
 final List<Map<String, dynamic>> games = [
@@ -31,7 +29,8 @@ class _AntiMafiaGamePageState extends State<AntiMafiaGamePage> {
   String? secondInformant;
   int firstInformantIndex = 0;
   int secondInformantIndex = 0;
-  int leaderIndex = 0;
+  int leaderInRoundIndex = 0;
+  String? leaderInRound;
   List<int> robberyTeam = [];
   bool isRobberyStarted = false;
   bool isRobberyFinished = false;
@@ -42,6 +41,13 @@ class _AntiMafiaGamePageState extends State<AntiMafiaGamePage> {
   bool isUsersPlayLoaded = false;
   bool isUsersGameResultLoaded = false;
   DocumentReference? gameResultsDocRef;
+  AntiMafiaCrud amf = new AntiMafiaCrud();
+  int roundCount = 1;
+  void roundCountPlus() {
+    roundCount++;
+    _chooseLeader();
+  }
+
   @override
   void initState() {
     super.initState();
@@ -65,7 +71,7 @@ class _AntiMafiaGamePageState extends State<AntiMafiaGamePage> {
           .toList();
 
       isUsersPlayLoaded = true; // Устанавливаем флаг после загрузки
-      _assignRoles();
+
       _findCurrentUserIndex();
       _chooseLeader();
     }
@@ -85,13 +91,12 @@ class _AntiMafiaGamePageState extends State<AntiMafiaGamePage> {
       // Создаем документ gameResults с начальными данными
       gameResultsDocRef = roomDocRef.collection('gameResults').doc();
       await gameResultsDocRef!.set({
-        'firstRound': {'result': false, 'membersCount': 3},
-        'secondRound': {'result': false, 'membersCount': 2},
-        'thirdRound': {'result': false, 'membersCount': 3},
-        'fourthRound': {'result': false, 'membersCount': 2},
-        'fifthRound': {'result': false, 'membersCount': 3},
+        '1': {'result': false, 'membersCount': 3, 'leaderName': ''},
+        '2': {'result': false, 'membersCount': 2, 'leaderName': ''},
+        '3': {'result': false, 'membersCount': 3, 'leaderName': ''},
+        '4': {'result': false, 'membersCount': 2, 'leaderName': ''},
+        '5': {'result': false, 'membersCount': 3, 'leaderName': ''},
       });
-      _fetchGameResults();
     }
   }
 
@@ -107,36 +112,13 @@ class _AntiMafiaGamePageState extends State<AntiMafiaGamePage> {
     setState(() {});
   }
 
-  void _assignRoles() {
-    if (isUsersPlayLoaded && usersPlay.isNotEmpty) {
-      roles = List.generate(usersPlay.length, (index) => 'Грабитель');
-
-      final random = Random();
-
-      // Выбираем двух осведомителей (только при первом запуске)
-      for (int i = 0; i < 1; i++) {
-        final randomIndex = random.nextInt(usersPlay.length);
-        final randomIndex2 = random.nextInt(usersPlay.length);
-        if (roles[randomIndex] != 'Осведомитель' &&
-            roles[randomIndex2] != 'Осведомитель' &&
-            randomIndex2 != randomIndex &&
-            usersPlay[randomIndex2]['name'] != widget.nameUser) {
-          roles[randomIndex] = 'Осведомитель';
-          firstInformantIndex = randomIndex;
-          roles[randomIndex2] = 'Осведомитель';
-          secondInformantIndex = randomIndex2;
-
-          secondInformant = usersPlay[randomIndex2]['name'];
-        } else {
-          i--;
-        }
-      }
-    }
-  }
-
   void _chooseLeader() {
     final random = Random();
-    leaderIndex = random.nextInt(usersPlay.length);
+    leaderInRoundIndex = random.nextInt(usersPlay.length);
+    amf.updateLeaderInRound(
+        widget.nameRoom, roundCount, usersPlay[leaderInRoundIndex]['name']);
+    leaderInRound = usersPlay[leaderInRoundIndex]['name'];
+    usersGameResult['${roundCount}']['leaderName'] = leaderInRound;
   }
 
   void _addToRobberyTeam(int index) {
@@ -264,7 +246,7 @@ class _AntiMafiaGamePageState extends State<AntiMafiaGamePage> {
                     child: Column(
                       children: [
                         Text(
-                          'Лидер: ${usersPlay[leaderIndex]['name']}',
+                          'Лидер: ${usersPlay[leaderInRoundIndex]['name']}',
                           style: TextStyle(fontWeight: FontWeight.bold),
                         ),
                         SizedBox(height: 10),
@@ -282,7 +264,7 @@ class _AntiMafiaGamePageState extends State<AntiMafiaGamePage> {
               ),
               SizedBox(height: 20),
               Expanded(
-                child: currentUserIndex == leaderIndex
+                child: currentUserIndex == leaderInRoundIndex
                     // Если игрок лидер, то показываем всех игроков
                     ? Column(
                         children: [

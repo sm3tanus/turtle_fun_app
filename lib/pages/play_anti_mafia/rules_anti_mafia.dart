@@ -1,6 +1,11 @@
+import 'dart:math';
+
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:turtle_fun/db/room_crud.dart';
 import 'package:turtle_fun/pages/choise_game_page.dart';
+import 'package:turtle_fun/pages/play_anti_mafia/anti_mafia_crud.dart';
 import 'package:turtle_fun/pages/play_anti_mafia/game_anti_mafia.dart';
 import 'package:turtle_fun/play_find_true/interface_answers.dart';
 
@@ -22,6 +27,98 @@ class RulesAntiMafia extends StatefulWidget {
 class _RulesAntiMafiaState extends State<RulesAntiMafia> {
   bool visibility = false;
   bool visibilityWelcome = false;
+  String? leaderName;
+  List<String> roles = [];
+  String? secondInformant;
+  int firstInformantIndex = 0;
+  int secondInformantIndex = 0;
+  int leaderIndex = 0;
+  List<int> robberyTeam = [];
+  bool isRobberyStarted = false;
+  bool isRobberyFinished = false;
+  bool isRobberySuccess = true;
+  int currentUserIndex = 0;
+  List<Map<String, dynamic>> usersPlay = [];
+  Map<String, dynamic> usersGameResult = {};
+  bool isUsersPlayLoaded = false;
+  bool isUsersGameResultLoaded = false;
+  DocumentReference? gameResultsDocRef;
+  int? liderInRound;
+  @override
+  void initState() {
+    super.initState();
+    _fetchUsersPlay();
+  }
+
+  Future<void> _fetchUsersPlay() async {
+    var roomSnapshot = await FirebaseFirestore.instance
+        .collection('rooms')
+        .where('name', isEqualTo: widget.nameRoom)
+        .get();
+
+    if (roomSnapshot.docs.isNotEmpty) {
+      var roomDocRef = roomSnapshot.docs.first.reference;
+
+      var usersPlaySnapshot = await roomDocRef.collection('users').get();
+
+      usersPlay = usersPlaySnapshot.docs
+          .map((doc) => doc.data() as Map<String, dynamic>)
+          .toList();
+
+      // Устанавливаем флаг после загрузки
+    }
+    setState(() {});
+    isUsersPlayLoaded = true;
+    _assignRoles();
+    checkLeaderInRoom();
+  }
+
+  Future<void> checkLeaderInRoom() async {
+    var filter = await FirebaseFirestore.instance
+        .collection('rooms')
+        .where('name', isEqualTo: widget.nameRoom)
+        .get();
+
+    var roomId = filter.docs.first.id;
+    var roomDoc =
+        await FirebaseFirestore.instance.collection('rooms').doc(roomId).get();
+    leaderName = roomDoc['leader'];
+    print(leaderName);
+  }
+
+  void _assignRoles() async {
+    if (isUsersPlayLoaded && usersPlay.isNotEmpty) {
+      roles = List.generate(usersPlay.length, (index) => 'Грабитель');
+
+      final random = Random();
+
+      // Выбираем двух осведомителей (только при первом запуске)
+      for (int i = 0; i < 1; i++) {
+        final randomIndex = random.nextInt(usersPlay.length);
+        final randomIndex2 = random.nextInt(usersPlay.length);
+        if (roles[randomIndex] != 'Осведомитель' &&
+            roles[randomIndex2] != 'Осведомитель' &&
+            randomIndex2 != randomIndex &&
+            usersPlay[randomIndex2]['name'] != widget.nameUser) {
+          roles[randomIndex] = 'Осведомитель';
+          firstInformantIndex = randomIndex;
+          roles[randomIndex2] = 'Осведомитель';
+          secondInformantIndex = randomIndex2;
+
+          AntiMafiaCrud amf = new AntiMafiaCrud();
+          if (roles[randomIndex] == 'Осведомитель') {
+            amf.updateRole(widget.nameRoom, usersPlay[randomIndex]['name']);
+          }
+          if (roles[randomIndex2] == 'Осведомитель') {
+            amf.updateRole(widget.nameRoom, usersPlay[randomIndex2]['name']);
+          }
+        } else {
+          i--;
+        }
+      }
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
