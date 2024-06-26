@@ -1,4 +1,5 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:turtle_fun/pages/play_anti_mafia/game_anti_mafia.dart';
 
 class Room {
   Future<void> createRoom(String leader, String name) async {
@@ -42,9 +43,7 @@ class Room {
         .doc(docId)
         .collection('users')
         .doc()
-        .set({
-      'name': nameUser,
-    });
+        .set({'name': nameUser, 'role': 0});
   }
 
   Future<void> addUsersToPlayRoom(String name, String nameUser) async {
