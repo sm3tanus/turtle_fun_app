@@ -1,3 +1,4 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:turtle_fun/db/room_crud.dart';
 import 'package:turtle_fun/pages/choise_game_page.dart';
@@ -16,6 +17,45 @@ class RulesChoiseTrue extends StatefulWidget {
 class _RulesChoiseTrueState extends State<RulesChoiseTrue> {
   bool visibility = false;
   bool visibilityWelcome = false;
+  bool visibilityOne = false;
+  @override
+  void initState() {
+    super.initState();
+    inRoom();
+  }
+
+  Future inRoom() async {
+    if (await countUser() != 1) {
+      Room room = Room();
+      if (await room.checkLeaderInRoom(widget.nameRoom)) {
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (context) => FindTrue(
+              nameRoom: widget.nameRoom,
+              nameUser: widget.nameUser,
+            ),
+          ),
+        );
+      }
+    }
+  }
+
+  Future <int>countUser() async {
+    var filter = await FirebaseFirestore.instance
+        .collection('rooms')
+        .where('name', isEqualTo: widget.nameRoom)
+        .get();
+
+    var roomId = filter.docs.first.id;
+    var roomDoc = await FirebaseFirestore.instance
+        .collection('rooms')
+        .doc(roomId)
+        .collection('usersPlay')
+        .get();
+    return roomDoc.size;
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -169,23 +209,22 @@ class _RulesChoiseTrueState extends State<RulesChoiseTrue> {
                     child: ElevatedButton(
                       onPressed: () async {
                         Room room = Room();
-                        if (await room.checkUserPlayInRoom(
-                            widget.nameRoom, widget.nameUser)) {
-                          room.addUsersToPlayRoom(
-                              widget.nameRoom, widget.nameUser);
-                          room.setUserNavigateTrue(
-                              widget.nameRoom, widget.nameUser);
-                          setState(() {
-                            visibilityWelcome = true;
-                          });
-                        } else {
-                          setState(() {
-                            visibilityWelcome = false;
-                          });
-                          if (await room.checkLeaderInRoom(widget.nameRoom)) {
-                            if (await room.navigate(widget.nameRoom) &&
-                                widget.nameRoom.isNotEmpty &&
-                                widget.nameUser.isNotEmpty) {
+
+                        if (await countUser()!= 1) {
+                          if (await room.checkUserPlayInRoom(
+                              widget.nameRoom, widget.nameUser)) {
+                            room.addUsersToPlayRoom(
+                                widget.nameRoom, widget.nameUser);
+                            room.setUserNavigateTrue(
+                                widget.nameRoom, widget.nameUser);
+                            setState(() {
+                              visibilityWelcome = true;
+                            });
+                          } else {
+                            setState(() {
+                              visibilityWelcome = false;
+                            });
+                            if (await room.checkLeaderInRoom(widget.nameRoom)) {
                               room.addNameToRoom(
                                   widget.nameRoom, "НайдиИстину");
                               Navigator.push(
@@ -197,12 +236,16 @@ class _RulesChoiseTrueState extends State<RulesChoiseTrue> {
                                   ),
                                 ),
                               );
+                            } else {
+                              setState(() {
+                                visibility = true;
+                              });
                             }
-                          } else {
-                            setState(() {
-                              visibility = true;
-                            });
                           }
+                        } else {
+                          setState(() {
+                            visibilityOne = true;
+                          });
                         }
                       },
                       child: const Text(
@@ -215,6 +258,17 @@ class _RulesChoiseTrueState extends State<RulesChoiseTrue> {
                     ),
                   ),
                 ],
+              ),
+              SizedBox(
+                height: MediaQuery.of(context).size.height * 0.02,
+              ),
+              Visibility(
+                visible: visibilityOne,
+                child: const Text(
+                  'Одному играть не получится.',
+                  textAlign: TextAlign.center,
+                  style: TextStyle(color: Colors.red, fontSize: 20),
+                ),
               ),
               SizedBox(
                 height: MediaQuery.of(context).size.height * 0.02,

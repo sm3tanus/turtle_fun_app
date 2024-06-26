@@ -43,7 +43,7 @@ class Room {
         .collection('users')
         .doc()
         .set({
-      'name': nameUser,
+      'name': nameUser, 'role': 0
     });
   }
 
@@ -74,15 +74,31 @@ class Room {
   }
 
   Future<void> deleteRoom(String name) async {
-    var querySnapshot = await FirebaseFirestore.instance
-        .collection('rooms')
-        .where('name', isEqualTo: name)
-        .get();
+  var querySnapshot = await FirebaseFirestore.instance
+      .collection('rooms')
+      .where('name', isEqualTo: name)
+      .get();
 
-    for (var doc in querySnapshot.docs) {
-      await FirebaseFirestore.instance.collection('rooms').doc(doc.id).delete();
-    }
+  for (var doc in querySnapshot.docs) {
+    await deleteDocumentAndSubcollections(doc.reference);
   }
+}
+
+Future<void> deleteDocumentAndSubcollections(DocumentReference docRef) async {
+  var usersPlayCollections = await docRef.collection('usersPlay').get();
+  for (var subDoc in usersPlayCollections.docs) {
+    await deleteDocumentAndSubcollections(subDoc.reference); 
+  }
+   var usersCollections = await docRef.collection('users').get();
+  for (var subDoc in usersCollections.docs) {
+    await deleteDocumentAndSubcollections(subDoc.reference); 
+  }
+  var answersCollections = await docRef.collection('answers').get();
+  for (var subDoc in answersCollections.docs) {
+    await deleteDocumentAndSubcollections(subDoc.reference); 
+  }
+  await docRef.delete();
+}
 
   Future<void> deleteUserInRoom(String nameRoom, String nameUser) async {
     var querySnapshot = await FirebaseFirestore.instance

@@ -3,6 +3,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:turtle_fun/db/answer_crud.dart';
 import 'package:turtle_fun/play_find_true/game_process.dart';
+import 'package:turtle_fun/play_find_true/table_points.dart';
 
 // ignore: must_be_immutable
 class AllAnswers extends StatefulWidget {
@@ -35,6 +36,7 @@ class _AllAnswersState extends State<AllAnswers> {
   bool showCorrectAnswer = false;
   int? selectedAnswerIndex;
   int countdown = 20;
+  bool onPress = false;
 
   @override
   void initState() {
@@ -52,7 +54,6 @@ class _AllAnswersState extends State<AllAnswers> {
   void startTimer() {
     _timer?.cancel();
     _timer = Timer(Duration(seconds: 10), () async {
-      // await answer.decideMostLikes(widget.nameRoom, widget.currentIndex);
       setState(() {
         showCorrectAnswer = true;
       });
@@ -78,7 +79,17 @@ class _AllAnswersState extends State<AllAnswers> {
             ),
           ),
         );
-      } else {}
+      } else {
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (context) => TablePoints(
+              nameRoom: widget.nameRoom,
+              nameUser: widget.nameUser,
+            ),
+          ),
+        );
+      }
     });
   }
 
@@ -188,19 +199,22 @@ class _AllAnswersState extends State<AllAnswers> {
                                       color: Color(0xffA1C096), width: 2),
                                 ),
                                 onPressed: () async {
-                                  Answer answerClass = Answer();
-                                  if (!showCorrectAnswer) {
+                                  if (!onPress) {
+                                    Answer answerClass = Answer();
+                                    if (!showCorrectAnswer) {
+                                      setState(() {
+                                        selectedAnswerIndex = index;
+                                      });
+                                    }
+
+                                    if (isCorrectAnswer) {
+                                      await answerClass.addPointToUser(
+                                          widget.nameUser, widget.nameRoom);
+                                    }
                                     setState(() {
-                                      selectedAnswerIndex = index;
+                                      onPress = true;
                                     });
                                   }
-
-                                  if (isCorrectAnswer) {
-                                    await answerClass.addPointToUser(
-                                        widget.nameUser, widget.nameRoom);
-                                  }
-                                  
-                                  
                                 },
                                 child: Text(
                                   answer['answer'] ?? 'No text',
@@ -226,6 +240,13 @@ class _AllAnswersState extends State<AllAnswers> {
               ),
             ),
           ),
+           Visibility(
+            visible: onPress,
+             child: Text(
+              'Ваш голос учтен.',
+              style: const TextStyle(color: Color(0xffA1C096), fontSize: 20),
+                       ),
+           ),
           Text(
             '$countdown секунд',
             style: const TextStyle(color: Color(0xffA1C096), fontSize: 20),

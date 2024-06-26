@@ -8,6 +8,7 @@ import 'package:turtle_fun/pages/play_anti_mafia/rules_anti_mafia.dart';
 import 'package:turtle_fun/pages/play_traitor/rules_traitor.dart';
 import 'package:turtle_fun/play_find_true/interface_all_answers.dart';
 import 'package:turtle_fun/play_find_true/rules_choise_true_page.dart';
+import 'package:turtle_fun/play_find_true/table_points.dart';
 
 // ignore: must_be_immutable
 class ChoiseGame extends StatefulWidget {
@@ -204,24 +205,23 @@ class _ChoiseGameState extends State<ChoiseGame> {
                       height: MediaQuery.of(context).size.height * 0.15,
                       child: ElevatedButton(
                         onPressed: () async {
-                          // Navigator.push(
-                          //   context,
-                          //   MaterialPageRoute(
-                          //     builder: (context) => RulesChoiseTrue(
-                          //         nameRoom: widget.nameRoom,
-                          //         nameUser: widget.nameUser),
-                          //   ),
-                          // );
                           Navigator.push(
                             context,
                             MaterialPageRoute(
-                              builder: (context) => AllAnswers(
-                                nameRoom: widget.nameRoom,
-                                nameUser: widget.nameUser,
-                                currentIndex: 0,
-                              ),
+                              builder: (context) => RulesChoiseTrue(
+                                  nameRoom: widget.nameRoom,
+                                  nameUser: widget.nameUser),
                             ),
                           );
+                          // Navigator.push(
+                          //   context,
+                          //   MaterialPageRoute(
+                          //     builder: (context) => TablePoints(
+                          //       nameRoom: widget.nameRoom,
+                          //       nameUser: widget.nameUser,
+                          //     ),
+                          //   ),
+                          // );
                         },
                         child: Row(
                           children: [
