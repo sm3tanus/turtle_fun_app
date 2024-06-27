@@ -86,7 +86,7 @@ class _RulesAntiMafiaState extends State<RulesAntiMafia> {
     print(leaderName);
   }
 
-  void _assignRoles() async {
+  void _assignRoles() {
     if (isUsersPlayLoaded && usersPlay.isNotEmpty) {
       roles = List.generate(usersPlay.length, (index) => 'Грабитель');
 

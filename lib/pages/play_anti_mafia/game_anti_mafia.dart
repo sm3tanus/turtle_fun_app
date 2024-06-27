@@ -25,8 +25,6 @@ final List<Map<String, dynamic>> games = [
 ];
 
 class _AntiMafiaGamePageState extends State<AntiMafiaGamePage> {
-  List<String> roles = [];
-  String? secondInformant;
   int firstInformantIndex = 0;
   int secondInformantIndex = 0;
   int leaderInRoundIndex = 0;
@@ -43,16 +41,21 @@ class _AntiMafiaGamePageState extends State<AntiMafiaGamePage> {
   DocumentReference? gameResultsDocRef;
   AntiMafiaCrud amf = new AntiMafiaCrud();
   int roundCount = 1;
+  int randomIDForGameResult = 0;
   void roundCountPlus() {
     roundCount++;
-    _chooseLeader();
   }
 
   @override
   void initState() {
     super.initState();
+
     _fetchUsersPlay();
-    _createGameResults();
+  }
+
+  void _randomIDForGameResult() {
+    Random random = new Random();
+    randomIDForGameResult = random.nextInt(1000);
   }
 
   Future<void> _fetchUsersPlay() async {
@@ -70,15 +73,18 @@ class _AntiMafiaGamePageState extends State<AntiMafiaGamePage> {
           .map((doc) => doc.data() as Map<String, dynamic>)
           .toList();
 
-      isUsersPlayLoaded = true; // Устанавливаем флаг после загрузки
-
       _findCurrentUserIndex();
-      _chooseLeader();
+      _findSecondInformant();
+      await _createGameResults();
+      _fetchGameResults();
+      isUsersPlayLoaded = true; // Устанавливаем флаг после загрузки
+    } else {
+      print('иди нахуй');
     }
-    setState(() {});
   }
 
   Future<void> _createGameResults() async {
+    _randomIDForGameResult();
     // Получаем документ комнаты
     var roomSnapshot = await FirebaseFirestore.instance
         .collection('rooms')
@@ -96,6 +102,7 @@ class _AntiMafiaGamePageState extends State<AntiMafiaGamePage> {
         '3': {'result': false, 'membersCount': 3, 'leaderName': ''},
         '4': {'result': false, 'membersCount': 2, 'leaderName': ''},
         '5': {'result': false, 'membersCount': 3, 'leaderName': ''},
+        'id': randomIDForGameResult
       });
     }
   }
@@ -105,27 +112,42 @@ class _AntiMafiaGamePageState extends State<AntiMafiaGamePage> {
       var gameResultsSnapshot = await gameResultsDocRef!.get();
 
       if (gameResultsSnapshot.exists) {
-        usersGameResult = gameResultsSnapshot.data() as Map<String, dynamic>;
+        // Извлекаем данные как Map<String, dynamic>
+        Map<String, dynamic> gameResultsData = gameResultsSnapshot.data()!
+            as Map<String, dynamic>; // Преобразуем Object в Map
+
+        // Создаем новый Map для хранения результатов игры
+        usersGameResult = {};
+
+        // Перебираем данные по раундам
+        gameResultsData.forEach((roundKey, roundData) {
+          // Извлекаем данные для текущего раунда
+          if (roundData is Map<String, dynamic>) {
+            usersGameResult[roundKey] = roundData;
+          }
+        });
+
         isUsersGameResultLoaded = true; // Устанавливаем флаг после загрузки
       }
     }
+    _chooseLeader();
     setState(() {});
   }
 
   void _chooseLeader() {
     final random = Random();
     leaderInRoundIndex = random.nextInt(usersPlay.length);
-    amf.updateLeaderInRound(
-        widget.nameRoom, roundCount, usersPlay[leaderInRoundIndex]['name']);
+    amf.updateLeaderInRound(widget.nameRoom, roundCount, randomIDForGameResult,
+        usersPlay[leaderInRoundIndex]['name']);
     leaderInRound = usersPlay[leaderInRoundIndex]['name'];
-    usersGameResult['${roundCount}']['leaderName'] = leaderInRound;
+    usersGameResult['$roundCount']['leaderName'] = leaderInRound;
   }
 
   void _addToRobberyTeam(int index) {
     if (robberyTeam.contains(index)) {
       robberyTeam.remove(index);
     } else if (robberyTeam.length <
-            usersGameResult['firstRound']['membersCount'] &&
+            usersGameResult['$roundCount']['membersCount'] &&
         (roundCount == 1)) {
       robberyTeam.add(index);
     }
@@ -139,27 +161,27 @@ class _AntiMafiaGamePageState extends State<AntiMafiaGamePage> {
     });
   }
 
-  void _onRobberyResult(bool success) {
-    if (!isRobberyFinished) {
-      if (usersPlay.every((user) =>
-          (roles[usersPlay.indexOf(user)] == 'Осведомитель' && !success) ||
-          (roles[usersPlay.indexOf(user)] != 'Осведомитель' && success))) {
-        setState(() {
-          isRobberyFinished = true;
-          usersGameResult['firstRound']['result'] = success;
-          _updateGameResults();
-          if (roundCount < usersGameResult.length) {
-            roundCount++;
-            isRobberyStarted = false;
-            robberyTeam.clear();
-            isRobberyFinished = false;
-            isRobberySuccess = true;
-            _chooseLeader();
-          }
-        });
-      }
-    }
-  }
+  // void _onRobberyResult(bool success) {
+  //   if (!isRobberyFinished) {
+  //     if (usersPlay.every((user) =>
+  //         (roles[usersPlay.indexOf(user)] == 'Осведомитель' && !success) ||
+  //         (roles[usersPlay.indexOf(user)] != 'Осведомитель' && success))) {
+  //       setState(() {
+  //         isRobberyFinished = true;
+  //         usersGameResult['firstRound']['result'] = success;
+  //         _updateGameResults();
+  //         if (roundCount < usersGameResult.length) {
+  //           roundCount++;
+  //           isRobberyStarted = false;
+  //           robberyTeam.clear();
+  //           isRobberyFinished = false;
+  //           isRobberySuccess = true;
+  //           _chooseLeader();
+  //         }
+  //       });
+  //     }
+  //   }
+  // }
 
   void _updateGameResults() async {
     if (gameResultsDocRef != null) {
@@ -172,172 +194,206 @@ class _AntiMafiaGamePageState extends State<AntiMafiaGamePage> {
         usersPlay.indexWhere((user) => user['name'] == widget.nameUser);
   }
 
+  void _findSecondInformant() {
+    if (usersPlay.isNotEmpty) {
+      // Находим первого осведомителя
+      int firstInformantIndex =
+          usersPlay.indexWhere((user) => user['role'] == 1);
+
+      // Если первый осведомитель найден
+      if (firstInformantIndex != -1) {
+        // Находим второго осведомителя, не равного текущему пользователю
+        int secondInformantIndex;
+        do {
+          secondInformantIndex = Random().nextInt(usersPlay.length);
+        } while (secondInformantIndex == firstInformantIndex ||
+            usersPlay[secondInformantIndex]['name'] ==
+                widget
+                    .nameUser); // Изменил условие для проверки имени пользователя
+
+        // Если второй осведомитель найден
+        if (secondInformantIndex != -1) {
+          // Делаем что-то с информацией о втором осведомителе
+          print(
+              "Второй осведомитель: ${usersPlay[secondInformantIndex]['name']}");
+        }
+      }
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-        backgroundColor: Color.fromRGBO(30, 85, 65, 1),
-        body: SafeArea(
-          child: Column(
-            children: [
-              Center(
-                child: Text(
-                  textAlign: TextAlign.center,
-                  'ОГРАБЛЕНИЕ   ${roundCount} / 5',
-                  style: TextStyle(fontSize: 20, color: Colors.white),
-                ),
-              ),
-
-              SingleChildScrollView(
-                scrollDirection: Axis.horizontal,
-                child: Row(
-                  children: games
-                      .map((game) => Container(
-                            width: 60,
-                            height: 60,
-                            decoration: BoxDecoration(
-                              color: usersGameResult['firstRound']['result'] ==
-                                      true
-                                  ? Colors.green
-                                  : usersGameResult['firstRound']['result'] ==
-                                          false
-                                      ? Colors.red
-                                      : null,
-                              borderRadius: BorderRadius.circular(8.0),
-                            ),
-                            child: Padding(
-                              padding: const EdgeInsets.all(8.0),
-                              child: Center(
-                                child: Text(
-                                  '${game['membersCount']}',
-                                  style: const TextStyle(
-                                    fontWeight: FontWeight.bold,
-                                    fontSize: 20,
-                                  ),
-                                ),
-                              ),
-                            ),
-                          ))
-                      .toList(),
-                ),
-              ),
-              SizedBox(height: 20),
-              Card(
-                child: Padding(
-                  padding: const EdgeInsets.all(8.0),
-                  child: Center(
-                    child: Text(
-                      roles[currentUserIndex] == 'Осведомитель'
-                          ? 'Твоя роль (${usersPlay[currentUserIndex]['name']}) - Осведомитель\nНапарник - $secondInformant'
-                          : 'Твоя роль - ${roles[currentUserIndex]}',
-                      textAlign: TextAlign.center,
-                      style: const TextStyle(
-                        fontWeight: FontWeight.bold,
-                        fontSize: 16,
+    return FutureBuilder<void>(
+      future: _fetchUsersPlay(),
+      builder: (context, snapshot) {
+        if (!snapshot.hasData) {
+          return Center(child: CircularProgressIndicator());
+        } else {
+          return Scaffold(
+              backgroundColor: Color.fromRGBO(30, 85, 65, 1),
+              body: SafeArea(
+                child: Column(
+                  children: [
+                    Center(
+                      child: Text(
+                        textAlign: TextAlign.center,
+                        'ОГРАБЛЕНИЕ   $roundCount / 5',
+                        style: TextStyle(fontSize: 20, color: Colors.white),
                       ),
                     ),
-                  ),
-                ),
-              ),
-              SizedBox(height: 20),
-              Card(
-                child: Padding(
-                  padding: const EdgeInsets.all(8.0),
-                  child: Center(
-                    child: Column(
-                      children: [
-                        Text(
-                          'Лидер: ${usersPlay[leaderInRoundIndex]['name']}',
-                          style: TextStyle(fontWeight: FontWeight.bold),
-                        ),
-                        SizedBox(height: 10),
-                        Text('Команда для ограбления:'),
-                        SizedBox(height: 5),
-                        Column(
-                          children: robberyTeam
-                              .map((index) => Text(usersPlay[index]['name']))
-                              .toList(),
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
-              ),
-              SizedBox(height: 20),
-              Expanded(
-                child: currentUserIndex == leaderInRoundIndex
-                    // Если игрок лидер, то показываем всех игроков
-                    ? Column(
-                        children: [
-                          // Кнопка "Начать ограбление"
-                          if (!isRobberyStarted &&
-                              robberyTeam.length ==
-                                  usersGameResult['firstRound']['membersCount'])
-                            Padding(
-                              padding: const EdgeInsets.all(16.0),
-                              child: ElevatedButton(
-                                onPressed: _startRobbery,
-                                child: const Text('Начать ограбление'),
-                              ),
-                            ),
-                          // Список игроков
-                          Expanded(
-                            child: ListView.builder(
-                              itemCount: usersPlay.length,
-                              itemBuilder: (context, index) {
-                                return InkWell(
-                                  onTap: () => _addToRobberyTeam(index),
-                                  child: ListTile(
-                                    title: Text(usersPlay[index]['name']),
-                                    trailing: Text(
-                                      roles[index],
-                                      style: TextStyle(color: Colors.white),
+
+                    SingleChildScrollView(
+                      scrollDirection: Axis.horizontal,
+                      child: Row(
+                        children: games
+                            .map((game) => Container(
+                                  width: 60,
+                                  height: 60,
+                                  decoration: BoxDecoration(
+                                    color: game['result'] == true
+                                        ? Colors.green
+                                        : game['result'] == false
+                                            ? Colors.red
+                                            : null,
+                                    borderRadius: BorderRadius.circular(8.0),
+                                  ),
+                                  child: Padding(
+                                    padding: const EdgeInsets.all(8.0),
+                                    child: Center(
+                                      child: Text(
+                                        '${usersGameResult['$roundCount']['membersCount']}',
+                                        style: const TextStyle(
+                                          fontWeight: FontWeight.bold,
+                                          fontSize: 20,
+                                        ),
+                                      ),
                                     ),
                                   ),
-                                );
-                              },
+                                ))
+                            .toList(),
+                      ),
+                    ),
+                    SizedBox(height: 20),
+                    Card(
+                      child: Padding(
+                        padding: const EdgeInsets.all(8.0),
+                        child: Center(
+                          child: Text(
+                            usersPlay[currentUserIndex]['role'] == '1'
+                                ? 'Твоя роль (${usersPlay[currentUserIndex]['name']}) - Осведомитель\nНапарник - ${usersPlay[secondInformantIndex]['name']}'
+                                : 'Твоя роль - (${usersPlay[currentUserIndex]['name']})Грабитель',
+                            textAlign: TextAlign.center,
+                            style: const TextStyle(
+                              fontWeight: FontWeight.bold,
+                              fontSize: 16,
                             ),
                           ),
-                        ],
-                      )
-                    // Если игрок не лидер, то показываем сообщение
-                    : Center(
-                        child: Text(
-                          'Ожидайте выбора лидера',
-                          style: TextStyle(color: Colors.white),
                         ),
                       ),
-              ),
-              // Кнопки "Успех" и "Провал" для осведомителей и грабителей
-              if (isRobberyStarted)
-                Padding(
-                  padding: const EdgeInsets.all(16.0),
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      // Кнопка "Успех" для осведомителей и грабителей
-                      if (roles[currentUserIndex] == 'Осведомитель' ||
-                          robberyTeam.contains(currentUserIndex))
-                        ElevatedButton(
-                          onPressed: () {
-                            _onRobberyResult(true);
-                            print(usersGameResult['firstRound']['result']);
-                          },
-                          child: const Text('Успех'),
+                    ),
+                    SizedBox(height: 20),
+                    Card(
+                      child: Padding(
+                        padding: const EdgeInsets.all(8.0),
+                        child: Center(
+                          child: Column(
+                            children: [
+                              Text(
+                                'Лидер: ${usersPlay[leaderInRoundIndex]['name']}',
+                                style: TextStyle(fontWeight: FontWeight.bold),
+                              ),
+                              SizedBox(height: 10),
+                              Text('Команда для ограбления:'),
+                              SizedBox(height: 5),
+                              Column(
+                                children: robberyTeam
+                                    .map((index) =>
+                                        Text(usersPlay[index]['name']))
+                                    .toList(),
+                              ),
+                            ],
+                          ),
                         ),
-                      // Кнопка "Провал" для осведомителей
-                      if (roles[currentUserIndex] == 'Осведомитель')
-                        ElevatedButton(
-                          onPressed: () {
-                            _onRobberyResult(false);
-                            print(usersGameResult['firstRound']['result']);
-                          },
-                          child: const Text('Провал'),
+                      ),
+                    ),
+                    SizedBox(height: 20),
+                    Expanded(
+                      child: currentUserIndex == leaderInRoundIndex
+                          // Если игрок лидер, то показываем всех игроков
+                          ? Column(
+                              children: [
+                                // Кнопка "Начать ограбление"
+                                if (!isRobberyStarted &&
+                                    robberyTeam.length ==
+                                        usersGameResult['$roundCount']
+                                            ['membersCount'])
+                                  Padding(
+                                    padding: const EdgeInsets.all(16.0),
+                                    child: ElevatedButton(
+                                      onPressed: _startRobbery,
+                                      child: const Text('Начать ограбление'),
+                                    ),
+                                  ),
+                                // Список игроков
+                                Expanded(
+                                  child: ListView.builder(
+                                    itemCount: usersPlay.length,
+                                    itemBuilder: (context, index) {
+                                      return InkWell(
+                                        onTap: () => _addToRobberyTeam(index),
+                                        child: ListTile(
+                                          title: Text(usersPlay[index]['name']),
+                                          trailing: Text(
+                                            '${usersPlay[index]['role']}',
+                                            style:
+                                                TextStyle(color: Colors.white),
+                                          ),
+                                        ),
+                                      );
+                                    },
+                                  ),
+                                ),
+                              ],
+                            )
+                          // Если игрок не лидер, то показываем сообщение
+                          : Center(
+                              child: Text(
+                                'Ожидайте выбора лидера',
+                                style: TextStyle(color: Colors.white),
+                              ),
+                            ),
+                    ),
+                    // Кнопки "Успех" и "Провал" для осведомителей и грабителей
+                    if (isRobberyStarted)
+                      Padding(
+                        padding: const EdgeInsets.all(16.0),
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            // Кнопка "Успех" для осведомителей и грабителей
+                            if (usersPlay[currentUserIndex]['role'] == 1 ||
+                                robberyTeam.contains(currentUserIndex))
+                              ElevatedButton(
+                                onPressed: () {
+                                  print(
+                                      usersGameResult['$roundCount']['result']);
+                                },
+                                child: const Text('Успех'),
+                              ),
+                            // Кнопка "Провал" для осведомителей
+                            if (usersPlay[currentUserIndex]['role'] == 1)
+                              ElevatedButton(
+                                onPressed: () {},
+                                child: const Text('Провал'),
+                              ),
+                          ],
                         ),
-                    ],
-                  ),
+                      ),
+                  ],
                 ),
-            ],
-          ),
-        ));
+              )); // Ваш виджет
+        }
+      },
+    );
   }
 }

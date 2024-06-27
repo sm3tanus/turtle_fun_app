@@ -27,7 +27,7 @@ class AntiMafiaCrud {
   }
 
   Future<void> updateLeaderInRound(
-      String nameRoom, int roundCount, String nameUser) async {
+      String nameRoom, int roundCount, int id, String nameUser) async {
     var filter = await FirebaseFirestore.instance
         .collection('rooms')
         .where('name', isEqualTo: nameRoom)
@@ -35,22 +35,26 @@ class AntiMafiaCrud {
 
     var roomId = filter.docs.first.id;
 
-    var usersPlay = await FirebaseFirestore.instance
+    // Получаем ссылку на документ gameResults
+    var filter2 = await FirebaseFirestore.instance
         .collection('rooms')
         .doc(roomId)
         .collection('gameResults')
-        .where('leaderName', isEqualTo: '')
+        .where('id', isEqualTo: id)
         .get();
-
-    var userId = usersPlay.docs.first.id;
-    var userDocRef = FirebaseFirestore.instance
+    var gameId = filter2.docs.first.id;
+    var gameResultsDocRef = FirebaseFirestore.instance
         .collection('rooms')
         .doc(roomId)
         .collection('gameResults')
-        .doc(userId);
+        .doc(gameId); // Замените "gameResultsDocId" на фактическое ID документа
 
-    await userDocRef.update({
-      '${roundCount}': {'leaderName': nameUser}
+    // Обновляем имя лидера в нужной части документа
+    await gameResultsDocRef.update({
+      '$roundCount': {
+        'leaderName': nameUser
+        // ... другие поля, если нужно
+      }
     });
   }
 }
