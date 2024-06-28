@@ -1,5 +1,5 @@
+
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:turtle_fun/pages/play_anti_mafia/game_anti_mafia.dart';
 
 class Room {
   Future<void> createRoom(String leader, String name) async {
@@ -44,7 +44,6 @@ class Room {
         .collection('users')
         .doc()
         .set({'name': nameUser, 'role': 0});
-
   }
 
   Future<void> addUsersToPlayRoom(String name, String nameUser) async {
@@ -74,31 +73,31 @@ class Room {
   }
 
   Future<void> deleteRoom(String name) async {
-  var querySnapshot = await FirebaseFirestore.instance
-      .collection('rooms')
-      .where('name', isEqualTo: name)
-      .get();
+    var querySnapshot = await FirebaseFirestore.instance
+        .collection('rooms')
+        .where('name', isEqualTo: name)
+        .get();
 
-  for (var doc in querySnapshot.docs) {
-    await deleteDocumentAndSubcollections(doc.reference);
+    for (var doc in querySnapshot.docs) {
+      await deleteDocumentAndSubcollections(doc.reference);
+    }
   }
-}
 
-Future<void> deleteDocumentAndSubcollections(DocumentReference docRef) async {
-  var usersPlayCollections = await docRef.collection('usersPlay').get();
-  for (var subDoc in usersPlayCollections.docs) {
-    await deleteDocumentAndSubcollections(subDoc.reference); 
+  Future<void> deleteDocumentAndSubcollections(DocumentReference docRef) async {
+    var usersPlayCollections = await docRef.collection('usersPlay').get();
+    for (var subDoc in usersPlayCollections.docs) {
+      await deleteDocumentAndSubcollections(subDoc.reference);
+    }
+    var usersCollections = await docRef.collection('users').get();
+    for (var subDoc in usersCollections.docs) {
+      await deleteDocumentAndSubcollections(subDoc.reference);
+    }
+    var answersCollections = await docRef.collection('answers').get();
+    for (var subDoc in answersCollections.docs) {
+      await deleteDocumentAndSubcollections(subDoc.reference);
+    }
+    await docRef.delete();
   }
-   var usersCollections = await docRef.collection('users').get();
-  for (var subDoc in usersCollections.docs) {
-    await deleteDocumentAndSubcollections(subDoc.reference); 
-  }
-  var answersCollections = await docRef.collection('answers').get();
-  for (var subDoc in answersCollections.docs) {
-    await deleteDocumentAndSubcollections(subDoc.reference); 
-  }
-  await docRef.delete();
-}
 
   Future<void> deleteUserInRoom(String nameRoom, String nameUser) async {
     var querySnapshot = await FirebaseFirestore.instance
@@ -125,14 +124,6 @@ Future<void> deleteDocumentAndSubcollections(DocumentReference docRef) async {
     for (var doc in user.docs) {
       await doc.reference.delete();
     }
-  }
-
-  Future fetchRooms(String nameRoom) async {
-    var snapshot = await FirebaseFirestore.instance.collection('rooms').get();
-
-    var rooms = snapshot.docs;
-    var filter = rooms.where((doc) => doc['name'] == nameRoom).toList();
-    return filter;
   }
 
   navigate(String nameRoom) async {
@@ -226,19 +217,6 @@ Future<void> deleteDocumentAndSubcollections(DocumentReference docRef) async {
     }
   }
 
-  nameGame(String nameRoom) async {
-    var filter = await FirebaseFirestore.instance
-        .collection('rooms')
-        .where('name', isEqualTo: nameRoom)
-        .get();
-    for (var doc in filter.docs) {
-      var data = doc.data();
-      if (data.containsKey('namePlay')) {
-        return data['namePlay'];
-      }
-    }
-  }
-
   checkUserPlayInRoom(String nameRoom, String nameUser) async {
     QuerySnapshot roomSnapshot = await FirebaseFirestore.instance
         .collection('rooms')
@@ -252,5 +230,50 @@ Future<void> deleteDocumentAndSubcollections(DocumentReference docRef) async {
         .where('name', isEqualTo: nameUser)
         .get();
     return userSnapshot.docs.isEmpty;
+  }
+
+  Future<int> countUser(String nameRoom) async {
+    var filter = await FirebaseFirestore.instance
+        .collection('rooms')
+        .where('name', isEqualTo: nameRoom)
+        .get();
+
+    var roomId = filter.docs.first.id;
+    var roomDoc = await FirebaseFirestore.instance
+        .collection('rooms')
+        .doc(roomId)
+        .collection('usersPlay')
+        .get();
+    return roomDoc.size;
+  }
+
+  Future<bool> inRoom(String nameRoom, String nameUser) async {
+    Room room = Room();
+    if (await room.checkLeaderInRoom(nameRoom)) {
+      if (await room.checkUserPlayInRoom(nameRoom, nameUser)) {
+        room.addUsersToPlayRoom(nameRoom, nameUser);
+        room.setUserNavigateTrue(nameRoom, nameUser);
+        return true;
+      }
+    }
+
+    return false;
+  }
+
+  Future<int> checkRoomsNamePlay(String nameRoom) async {
+    QuerySnapshot querySnapshot = await FirebaseFirestore.instance
+        .collection('rooms')
+        .where('name', isEqualTo: nameRoom)
+        .get();
+    for (var doc in querySnapshot.docs) {
+      var data = doc.data() as Map<String, dynamic>;
+      String namePlay = data['namePlay'];
+      if (namePlay.startsWith('НайдиИстину')) {
+        return 1;
+      } else if (namePlay.startsWith('Предатель')) {
+        return 2;
+      }
+    }
+    return 3;
   }
 }

@@ -28,6 +28,13 @@ class _RulesChoiseTrueState extends State<RulesChoiseTrue> {
     if (await countUser() != 1) {
       Room room = Room();
       if (await room.checkLeaderInRoom(widget.nameRoom)) {
+        if (await room.checkUserPlayInRoom(widget.nameRoom, widget.nameUser)) {
+          room.addUsersToPlayRoom(widget.nameRoom, widget.nameUser);
+          room.setUserNavigateTrue(widget.nameRoom, widget.nameUser);
+          setState(() {
+            visibilityWelcome = true;
+          });
+        }
         Navigator.push(
           context,
           MaterialPageRoute(
@@ -41,7 +48,7 @@ class _RulesChoiseTrueState extends State<RulesChoiseTrue> {
     }
   }
 
-  Future <int>countUser() async {
+  Future<int> countUser() async {
     var filter = await FirebaseFirestore.instance
         .collection('rooms')
         .where('name', isEqualTo: widget.nameRoom)
@@ -210,23 +217,26 @@ class _RulesChoiseTrueState extends State<RulesChoiseTrue> {
                       onPressed: () async {
                         Room room = Room();
 
-                        if (await countUser()!= 1) {
-                          if (await room.checkUserPlayInRoom(
-                              widget.nameRoom, widget.nameUser)) {
-                            room.addUsersToPlayRoom(
-                                widget.nameRoom, widget.nameUser);
-                            room.setUserNavigateTrue(
-                                widget.nameRoom, widget.nameUser);
-                            setState(() {
-                              visibilityWelcome = true;
-                            });
-                          } else {
-                            setState(() {
-                              visibilityWelcome = false;
-                            });
+                        if (await room.checkUserPlayInRoom(
+                            widget.nameRoom, widget.nameUser)) {
+                          room.addUsersToPlayRoom(
+                              widget.nameRoom, widget.nameUser);
+                          room.setUserNavigateTrue(
+                              widget.nameRoom, widget.nameUser);
+                          setState(() {
+                            visibilityWelcome = true;
+                          });
+                        } else {
+                          setState(() {
+                            visibilityWelcome = false;
+                          });
+                          if (await countUser() != 1) {
                             if (await room.checkLeaderInRoom(widget.nameRoom)) {
                               room.addNameToRoom(
                                   widget.nameRoom, "НайдиИстину");
+                              setState(() {
+                                visibilityOne = false;
+                              });
                               Navigator.push(
                                 context,
                                 MaterialPageRoute(
@@ -238,14 +248,15 @@ class _RulesChoiseTrueState extends State<RulesChoiseTrue> {
                               );
                             } else {
                               setState(() {
+                                visibilityOne = false;
                                 visibility = true;
                               });
                             }
+                          } else {
+                            setState(() {
+                              visibilityOne = true;
+                            });
                           }
-                        } else {
-                          setState(() {
-                            visibilityOne = true;
-                          });
                         }
                       },
                       child: const Text(

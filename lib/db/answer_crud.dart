@@ -53,7 +53,7 @@ class Answer {
   }
 
   addPointToUser(String nameUser, String nameRoom) async {
-    try {
+ 
       var filter = await FirebaseFirestore.instance
           .collection('rooms')
           .where('name', isEqualTo: nameRoom)
@@ -80,9 +80,7 @@ class Answer {
       } else {
         print('Документ не существует.');
       }
-    } catch (e) {
-      print('Произошла ошибка: $e');
-    }
+  
   }
 
   // Future<void> decideMostLikes(String nameRoom, int index) async {

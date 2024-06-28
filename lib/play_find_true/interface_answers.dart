@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:turtle_fun/db/answer_crud.dart';
@@ -23,7 +25,9 @@ class _FindTrueState extends State<FindTrue> {
   bool visibility = false;
   bool allUsersReady = false;
   int i = 0;
+  bool enterAnswer = true;
   bool visibilityWait = false;
+  Timer? _timer;
 
   @override
   void initState() {
@@ -34,11 +38,21 @@ class _FindTrueState extends State<FindTrue> {
     }
   }
 
-  void nextQuestion() {
-    setState(() {
-      currentIndex++;
-
-      question = facts![currentIndex - 1];
+  void startPeriodicTask() {
+    _timer = Timer.periodic(Duration(seconds: 1), (timer) {
+      if (allUsersReady) {
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (context) => AllAnswers(
+              nameRoom: widget.nameRoom,
+              nameUser: widget.nameUser,
+              currentIndex: 0,
+            ),
+          ),
+        );
+        _timer?.cancel();
+      }
     });
   }
 
@@ -93,95 +107,132 @@ class _FindTrueState extends State<FindTrue> {
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              Text(
-                question ?? '',
-                textAlign: TextAlign.center,
-                style: const TextStyle(color: Color(0xffA1C096), fontSize: 24),
+              Visibility(
+                visible: enterAnswer,
+                child: Text(
+                  question ?? '',
+                  textAlign: TextAlign.center,
+                  style:
+                      const TextStyle(color: Color(0xffA1C096), fontSize: 24),
+                ),
               ),
               SizedBox(
                 height: MediaQuery.of(context).size.height * 0.05,
               ),
-              Container(
-                width: MediaQuery.of(context).size.width * 0.6,
-                height: MediaQuery.of(context).size.height * 0.09,
-                decoration: BoxDecoration(
-                  borderRadius: BorderRadius.circular(60),
-                ),
-                child: TextField(
-                  cursorColor: const Color(0xffA1FF80),
-                  textAlign: TextAlign.center,
-                  controller: _answer,
-                  style: const TextStyle(color: Colors.white, fontSize: 24),
-                  decoration: InputDecoration(
-                    hintText: 'Введите ответ',
-                    hintStyle: const TextStyle(
-                        color: Color.fromARGB(255, 226, 226, 226),
-                        fontSize: 24),
-                    enabledBorder: OutlineInputBorder(
-                      borderSide:
-                          const BorderSide(color: Color(0xffA1FF80), width: 2),
-                      borderRadius: BorderRadius.circular(60),
-                    ),
-                    disabledBorder: OutlineInputBorder(
-                      borderSide:
-                          const BorderSide(color: Color(0xffA1FF80), width: 2),
-                      borderRadius: BorderRadius.circular(60),
-                    ),
-                    focusedBorder: OutlineInputBorder(
-                      borderSide:
-                          const BorderSide(color: Color(0xffA1FF80), width: 2),
-                      borderRadius: BorderRadius.circular(60),
+              Visibility(
+                visible: enterAnswer,
+                child: Container(
+                  width: MediaQuery.of(context).size.width * 0.6,
+                  height: MediaQuery.of(context).size.height * 0.09,
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(60),
+                  ),
+                  child: TextField(
+                    cursorColor: const Color(0xffA1FF80),
+                    textAlign: TextAlign.center,
+                    controller: _answer,
+                    style: const TextStyle(color: Colors.white, fontSize: 24),
+                    decoration: InputDecoration(
+                      hintText: 'Введите ответ',
+                      hintStyle: const TextStyle(
+                          color: Color.fromARGB(255, 226, 226, 226),
+                          fontSize: 24),
+                      enabledBorder: OutlineInputBorder(
+                        borderSide: const BorderSide(
+                            color: Color(0xffA1FF80), width: 2),
+                        borderRadius: BorderRadius.circular(60),
+                      ),
+                      disabledBorder: OutlineInputBorder(
+                        borderSide: const BorderSide(
+                            color: Color(0xffA1FF80), width: 2),
+                        borderRadius: BorderRadius.circular(60),
+                      ),
+                      focusedBorder: OutlineInputBorder(
+                        borderSide: const BorderSide(
+                            color: Color(0xffA1FF80), width: 2),
+                        borderRadius: BorderRadius.circular(60),
+                      ),
                     ),
                   ),
                 ),
               ),
-              SizedBox(
-                width: MediaQuery.of(context).size.width * 0.6,
-                height: MediaQuery.of(context).size.height * 0.08,
-                child: ElevatedButton(
-                  onPressed: () {
-                    Answer answer = Answer();
-                    if (i < facts!.length) {
-                      i++;
-                      if (_answer.text.isNotEmpty) {
-                        setState(() {
-                          visibility = false;
-                        });
-                        answer.addAnswerToRoom(widget.nameRoom, widget.nameUser,
-                            _answer.text, currentIndex);
-                        nextQuestion();
-                        _answer.clear();
+              Visibility(
+                visible: enterAnswer,
+                child: SizedBox(
+                  width: MediaQuery.of(context).size.width * 0.6,
+                  height: MediaQuery.of(context).size.height * 0.08,
+                  child: ElevatedButton(
+                    onPressed: () {
+                      Answer answer = Answer();
+                      if (i < facts!.length) {
+                        i++;
+                        if (_answer.text.isNotEmpty) {
+                          setState(() {
+                            visibility = false;
+                          });
+                          answer.addAnswerToRoom(widget.nameRoom,
+                              widget.nameUser, _answer.text, currentIndex);
+                          _answer.clear();
+
+                          if (currentIndex != 8) {
+                            setState(() {
+                              currentIndex++;
+                            });
+                            question = facts![currentIndex];
+                          } else {
+                            startPeriodicTask();
+                          }
+                        } else {
+                          setState(() {
+                            visibility = true;
+                          });
+                        }
                       } else {
+                        _answer.clear();
                         setState(() {
-                          visibility = true;
+                          visibilityWait = true;
                         });
+
+                        setState(() {
+                          enterAnswer = false;
+                        });
+                        _setUserReady();
+                        areAllUsersReady();
                       }
-                    } else {
+                    },
+                    child: const Text(
+                      'ОТПРАВИТЬ',
+                      style: TextStyle(
+                        color: Color(0xff1E5541),
+                        fontSize: 30,
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+              Visibility(
+                visible: !enterAnswer,
+                child: SizedBox(
+                  width: MediaQuery.of(context).size.width * 0.6,
+                  height: MediaQuery.of(context).size.height * 0.08,
+                  child: ElevatedButton(
+                    onPressed: () {
                       _answer.clear();
                       setState(() {
                         visibilityWait = true;
                       });
+                      setState(() {
+                        enterAnswer = false;
+                      });
                       _setUserReady();
                       areAllUsersReady();
-                      if (allUsersReady) {
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                            builder: (context) => AllAnswers(
-                              nameRoom: widget.nameRoom,
-                              nameUser: widget.nameUser,
-                              currentIndex: 0,
-                            ),
-                          ),
-                        );
-                      }
-                    }
-                  },
-                  child: const Text(
-                    'ОТПРАВИТЬ',
-                    style: TextStyle(
-                      color: Color(0xff1E5541),
-                      fontSize: 30,
+                    },
+                    child: const Text(
+                      'ДАЛЕЕ',
+                      style: TextStyle(
+                        color: Color(0xff1E5541),
+                        fontSize: 30,
+                      ),
                     ),
                   ),
                 ),

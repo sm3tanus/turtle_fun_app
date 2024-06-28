@@ -1,14 +1,14 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:turtle_fun/db/room_crud.dart';
-import 'package:turtle_fun/pages/enter_name.dart';
 import 'package:turtle_fun/pages/list_rooms.dart';
 import 'package:turtle_fun/pages/main_page.dart';
-import 'package:turtle_fun/pages/play_anti_mafia/members_anti_mafia.dart';
+import 'package:turtle_fun/pages/play_anti_mafia/game_anti_mafia.dart';
 import 'package:turtle_fun/pages/play_anti_mafia/rules_anti_mafia.dart';
 import 'package:turtle_fun/pages/play_traitor/rules_traitor.dart';
-import 'package:turtle_fun/play_find_true/interface_all_answers.dart';
+import 'package:turtle_fun/play_find_true/interface_answers.dart';
 import 'package:turtle_fun/play_find_true/rules_choise_true_page.dart';
-import 'package:turtle_fun/play_find_true/table_points.dart';
 
 // ignore: must_be_immutable
 class ChoiseGame extends StatefulWidget {
@@ -36,7 +36,45 @@ class _ChoiseGameState extends State<ChoiseGame> {
         inRoom = true;
       });
     }
+    mainTimer();
     super.initState();
+  }
+
+  void mainTimer() {
+    Timer.periodic(Duration(seconds: 2), (Timer t) => checkInRoom());
+  }
+
+  Future<void> checkInRoom() async {
+    Room room = Room();
+    if (widget.nameRoom.isNotEmpty && widget.nameUser.isNotEmpty) {
+      if (await room.inRoom(widget.nameRoom, widget.nameUser)) {
+        if (await room.checkRoomsNamePlay(widget.nameRoom) == 1) {
+          if (await room.countUser(widget.nameRoom) != 1) {
+            Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (context) => FindTrue(
+                  nameRoom: widget.nameRoom,
+                  nameUser: widget.nameUser,
+                ),
+              ),
+            );
+          }
+        } else if (await room.checkRoomsNamePlay(widget.nameRoom) == 2) {
+          if (await room.countUser(widget.nameRoom) != 1) {
+            Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (context) => AntiMafiaGamePage(
+                  nameRoom: widget.nameRoom,
+                  nameUser: widget.nameUser,
+                ),
+              ),
+            );
+          }
+        }
+      }
+    }
   }
 
   @override
@@ -328,7 +366,7 @@ class _ChoiseGameState extends State<ChoiseGame> {
                   //     ),
                   //   ),
                   // ),
-              
+
                   Visibility(
                     visible: !inRoom,
                     child: SizedBox(

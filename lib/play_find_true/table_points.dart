@@ -2,7 +2,6 @@ import 'dart:async';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
-import 'package:turtle_fun/db/room_crud.dart';
 import 'package:turtle_fun/pages/choise_game_page.dart';
 
 // ignore: must_be_immutable
@@ -16,47 +15,9 @@ class TablePoints extends StatefulWidget {
 }
 
 class _TablePointsState extends State<TablePoints> {
-  Timer? _timer;
-  Timer? _countdownTimer;
-
-  int countdown = 15;
-
   @override
   void initState() {
-    startTimer();
-    startCountdown();
     super.initState();
-  }
-
-  void startTimer() {
-    _timer?.cancel();
-    _timer = Timer(Duration(seconds: 15), () async {
-      Room room = Room();
-      room.deleteRoom(widget.nameRoom);
-      Navigator.push(
-        context,
-        MaterialPageRoute(
-          builder: (context) => ChoiseGame(
-            nameRoom: "",
-            nameUser: "",
-          ),
-        ),
-      );
-    });
-  }
-
-  void startCountdown() {
-    _countdownTimer?.cancel();
-    countdown = 15;
-    _countdownTimer = Timer.periodic(Duration(seconds: 1), (timer) {
-      setState(() {
-        if (countdown > 0) {
-          countdown--;
-        } else {
-          _countdownTimer?.cancel();
-        }
-      });
-    });
   }
 
   @override
@@ -117,10 +78,28 @@ class _TablePointsState extends State<TablePoints> {
                       ),
                     ),
                   ),
-                  Text(
-                    '$countdown секунд',
-                    style:
-                        const TextStyle(color: Color(0xffA1C096), fontSize: 20),
+                  SizedBox(
+                    width: MediaQuery.of(context).size.width * 0.6,
+                    height: MediaQuery.of(context).size.height * 0.08,
+                    child: ElevatedButton(
+                      onPressed: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => ChoiseGame(
+                                nameRoom: widget.nameRoom,
+                                nameUser: widget.nameUser),
+                          ),
+                        );
+                      },
+                      child: const Text(
+                        'ВЫЙТИ',
+                        style: TextStyle(
+                          color: Color(0xff1E5541),
+                          fontSize: 30,
+                        ),
+                      ),
+                    ),
                   ),
                 ],
               ),
