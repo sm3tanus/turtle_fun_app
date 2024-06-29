@@ -107,20 +107,15 @@ class _AntiMafiaGamePageState extends State<AntiMafiaGamePage> {
       print('лидер в раунде: $leaderInRound');
       if (roundCount == 1 || roundCount == 3 || roundCount == 5) {
         usersGameResult['$roundCount']['membersCount'] = membersCount;
-        amf.updateLeaderInRound(
-            widget.nameRoom,
-            roundCount,
-            widget.randomIDForGameResult,
-            widget.nameUser,
-            membersCount,
-            result);
+        amf.updateLeaderInRound(widget.nameRoom, roundCount,
+            widget.randomIDForGameResult, leaderInRound!, membersCount, result);
       } else {
         usersGameResult['$roundCount']['membersCount'] = membersCount2;
         amf.updateLeaderInRound(
             widget.nameRoom,
             roundCount,
             widget.randomIDForGameResult,
-            widget.nameUser,
+            leaderInRound!,
             membersCount2,
             result);
       }
@@ -258,7 +253,7 @@ class _AntiMafiaGamePageState extends State<AntiMafiaGamePage> {
                             } else {
                               // Обработка случая, когда roundData не является Map
                               // Например, вы можете вывести сообщение о том, что данные некорректны
-                              return CircularProgressIndicator();
+                              return Text('');
                             }
                           }).toList(),
                         ),
@@ -289,7 +284,7 @@ class _AntiMafiaGamePageState extends State<AntiMafiaGamePage> {
                             child: Column(
                               children: [
                                 Text(
-                                  'Лидер: ${usersPlay[leaderInRoundIndex]['name']}',
+                                  'Лидер: $leaderInRound',
                                   style: TextStyle(fontWeight: FontWeight.bold),
                                 ),
                                 SizedBox(height: 10),
