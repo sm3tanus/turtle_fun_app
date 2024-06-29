@@ -99,7 +99,8 @@ class _AntiMafiaGamePageState extends State<AntiMafiaGamePage> {
     final random = Random();
     amf.updateLeaderInRound(widget.nameRoom, roundCount,
         widget.randomIDForGameResult, widget.nameUser, membersCount, result);
-    if (leaderInRound == null) {
+    if (leaderInRound == null &&
+        usersGameResult['$roundCount']['leaderName'] == '') {
       leaderInRoundIndex = random.nextInt(usersPlay.length);
 
       leaderInRound = usersPlay[leaderInRoundIndex]['name'];
