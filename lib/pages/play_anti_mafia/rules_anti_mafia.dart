@@ -58,48 +58,51 @@ class _RulesAntiMafiaState extends State<RulesAntiMafia> {
   }
 
   Future<void> _createGameResults() async {
-    _randomIDForGameResult();
-    // Получаем документ комнаты
-    var roomSnapshot = await FirebaseFirestore.instance
-        .collection('rooms')
-        .where('name', isEqualTo: widget.nameRoom)
-        .get();
+    checkLeaderInRoom();
+    if (leaderName == widget.nameUser) {
+      _randomIDForGameResult();
+      // Получаем документ комнаты
+      var roomSnapshot = await FirebaseFirestore.instance
+          .collection('rooms')
+          .where('name', isEqualTo: widget.nameRoom)
+          .get();
 
-    if (roomSnapshot.docs.isNotEmpty) {
-      var roomDocRef = roomSnapshot.docs.first.reference;
+      if (roomSnapshot.docs.isNotEmpty) {
+        var roomDocRef = roomSnapshot.docs.first.reference;
 
-      // Создаем документ gameResults с начальными данными
-      gameResultsDocRef = roomDocRef.collection('gameResults').doc();
-      await gameResultsDocRef!.set({
-        '1': {'result': false, 'membersCount': 3, 'leaderName': ''},
-        '2': {'result': false, 'membersCount': 2, 'leaderName': ''},
-        '3': {'result': false, 'membersCount': 3, 'leaderName': ''},
-        '4': {'result': false, 'membersCount': 2, 'leaderName': ''},
-        '5': {'result': false, 'membersCount': 3, 'leaderName': ''},
-        'id': randomIDForGameResult
-      });
-    }
-
-    if (gameResultsDocRef != null) {
-      var gameResultsSnapshot = await gameResultsDocRef!.get();
-
-      if (gameResultsSnapshot.exists) {
-        // Извлекаем данные как Map<String, dynamic>
-        Map<String, dynamic> gameResultsData = gameResultsSnapshot.data()!
-            as Map<String, dynamic>; // Преобразуем Object в Map
-
-        // Создаем новый Map для хранения результатов игры
-        usersGameResult = {};
-
-        // Перебираем данные по раундам
-        gameResultsData.forEach((roundKey, roundData) {
-          // Извлекаем данные для текущего раунда
-          if (roundData is Map<String, dynamic>) {
-            usersGameResult[roundKey] = roundData;
-          }
+        // Создаем документ gameResults с начальными данными
+        gameResultsDocRef = roomDocRef.collection('gameResults').doc();
+        await gameResultsDocRef!.set({
+          '1': {'result': false, 'membersCount': 3, 'leaderName': ''},
+          '2': {'result': false, 'membersCount': 2, 'leaderName': ''},
+          '3': {'result': false, 'membersCount': 3, 'leaderName': ''},
+          '4': {'result': false, 'membersCount': 2, 'leaderName': ''},
+          '5': {'result': false, 'membersCount': 3, 'leaderName': ''},
+          'id': randomIDForGameResult
         });
+      }
 
-        // Устанавливаем флаг после загрузки
+      if (gameResultsDocRef != null) {
+        var gameResultsSnapshot = await gameResultsDocRef!.get();
+
+        if (gameResultsSnapshot.exists) {
+          // Извлекаем данные как Map<String, dynamic>
+          Map<String, dynamic> gameResultsData = gameResultsSnapshot.data()!
+              as Map<String, dynamic>; // Преобразуем Object в Map
+
+          // Создаем новый Map для хранения результатов игры
+          usersGameResult = {};
+
+          // Перебираем данные по раундам
+          gameResultsData.forEach((roundKey, roundData) {
+            // Извлекаем данные для текущего раунда
+            if (roundData is Map<String, dynamic>) {
+              usersGameResult[roundKey] = roundData;
+            }
+          });
+
+          // Устанавливаем флаг после загрузки
+        }
       }
     }
   }
@@ -123,8 +126,8 @@ class _RulesAntiMafiaState extends State<RulesAntiMafia> {
     }
     setState(() {});
     isUsersPlayLoaded = true;
+
     _assignRoles();
-    checkLeaderInRoom();
   }
 
   Future<void> checkLeaderInRoom() async {
@@ -141,7 +144,7 @@ class _RulesAntiMafiaState extends State<RulesAntiMafia> {
   }
 
   void _assignRoles() {
-    if (widget.nameUser != leaderName) {
+    if (widget.nameUser == leaderName) {
       if (isUsersPlayLoaded && usersPlay.isNotEmpty) {
         roles = List.generate(usersPlay.length, (index) => 'Грабитель');
 
