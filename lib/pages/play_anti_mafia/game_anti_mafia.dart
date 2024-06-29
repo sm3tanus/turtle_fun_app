@@ -76,6 +76,8 @@ class _AntiMafiaGamePageState extends State<AntiMafiaGamePage> {
   // мы будем делать его нулом только после завершения раунда
   void _chooseLeader() {
     final random = Random();
+    amf.updateLeaderInRound(widget.nameRoom, roundCount,
+        widget.randomIDForGameResult, widget.nameUser, membersCount, result);
     if (leaderInRound == null) {
       leaderInRoundIndex = random.nextInt(usersPlay.length);
 
