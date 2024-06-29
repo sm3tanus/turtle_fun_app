@@ -45,7 +45,7 @@ class _AllAnswersState extends State<AllAnswers> {
     facts = processFind.facts_without_answers.toList();
     if (facts!.isNotEmpty) {
       question = facts![widget.currentIndex];
-      findAnswers();
+
     }
     startTimer();
     startCountdown();
@@ -107,32 +107,11 @@ class _AllAnswersState extends State<AllAnswers> {
     });
   }
 
-  Future<void> findAnswers() async {
-    var filter = await FirebaseFirestore.instance
-        .collection('rooms')
-        .where('name', isEqualTo: widget.nameRoom)
-        .get();
 
-    if (filter.docs.isNotEmpty) {
-      var docId = filter.docs.first.id;
-      var answersSnapshot = await FirebaseFirestore.instance
-          .collection('rooms')
-          .doc(docId)
-          .collection('answers')
-          .where('index', isEqualTo: widget.currentIndex)
-          .get();
-
-      setState(() {
-        answers = Future.value(answersSnapshot);
-        showCorrectAnswer = false;
-        selectedAnswerIndex = null;
-      });
-    }
-  }
-
-  @override
+ @override
   void dispose() {
     _timer?.cancel();
+    _timerPage?.cancel();
     _countdownTimer?.cancel();
     super.dispose();
   }

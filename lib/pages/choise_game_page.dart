@@ -23,7 +23,6 @@ class ChoiseGame extends StatefulWidget {
 class _ChoiseGameState extends State<ChoiseGame> {
   bool visibilityName = false;
   bool inRoom = false;
-  
 
   @override
   void initState() {
@@ -40,9 +39,13 @@ class _ChoiseGameState extends State<ChoiseGame> {
     mainTimer();
     super.initState();
   }
+
   Timer? _timer;
   void mainTimer() {
-      _timer = Timer.periodic(Duration(seconds: 2), (Timer t) => checkInRoom(),);
+    _timer = Timer.periodic(
+      Duration(seconds: 2),
+      (Timer t) => checkInRoom(),
+    );
   }
 
   Future<void> checkInRoom() async {
@@ -51,7 +54,7 @@ class _ChoiseGameState extends State<ChoiseGame> {
       if (await room.inRoom(widget.nameRoom, widget.nameUser)) {
         if (await room.checkRoomsNamePlay(widget.nameRoom) == 1) {
           if (await room.countUser(widget.nameRoom) != 1) {
-              _timer?.cancel();
+            _timer?.cancel();
             Navigator.push(
               context,
               MaterialPageRoute(
@@ -61,7 +64,6 @@ class _ChoiseGameState extends State<ChoiseGame> {
                 ),
               ),
             );
-
           }
         } else if (await room.checkRoomsNamePlay(widget.nameRoom) == 2) {
           if (await room.countUser(widget.nameRoom) != 1) {
@@ -78,6 +80,13 @@ class _ChoiseGameState extends State<ChoiseGame> {
         }
       }
     }
+  }
+
+  @override
+  void dispose() {
+    _timer?.cancel();
+
+    super.dispose();
   }
 
   @override
