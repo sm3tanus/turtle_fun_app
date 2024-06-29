@@ -33,7 +33,7 @@ class _FindTrueState extends State<FindTrue> {
   void initState() {
     super.initState();
     facts = processFind.facts_without_answers.toList();
-    if (facts!.isNotEmpty) {
+    if (facts!.isNotEmpty && currentIndex == 0) {
       question = facts![currentIndex];
     }
   }
@@ -54,6 +54,12 @@ class _FindTrueState extends State<FindTrue> {
         _timer?.cancel();
       }
     });
+  }
+
+  @override
+  void dispose() {
+    _timer?.cancel();
+    super.dispose();
   }
 
   Future<void> _setUserReady() async {
@@ -164,40 +170,41 @@ class _FindTrueState extends State<FindTrue> {
                   child: ElevatedButton(
                     onPressed: () {
                       Answer answer = Answer();
-                      if (i < facts!.length) {
-                        i++;
-                        if (_answer.text.isNotEmpty) {
-                          setState(() {
-                            visibility = false;
-                          });
-                          answer.addAnswerToRoom(widget.nameRoom,
-                              widget.nameUser, _answer.text, currentIndex);
-                          _answer.clear();
+                      // if (i <= facts!.length - 1) {
+                      //   i++;
+                      //   if (_answer.text.isNotEmpty) {
+                      //     setState(() {
+                      //       visibility = false;
+                      //     });
+                      //     answer.addAnswerToRoom(widget.nameRoom,
+                      //         widget.nameUser, _answer.text, currentIndex);
+                      //     _answer.clear();
 
-                          if (currentIndex != 8) {
-                            setState(() {
-                              currentIndex++;
-                            });
-                            question = facts![currentIndex];
-                          } else {
-                            startPeriodicTask();
-                          }
-                        } else {
-                          setState(() {
-                            visibility = true;
-                          });
-                        }
-                      } else {
-                        _answer.clear();
-                        setState(() {
-                          visibilityWait = true;
-                        });
-
-                        setState(() {
-                          enterAnswer = false;
-                        });
-                        _setUserReady();
-                        areAllUsersReady();
+                      //     if (currentIndex != 7) {
+                      //       setState(() {
+                      //         currentIndex++;
+                      //       });
+                      //       question = facts![currentIndex];
+                      //     }
+                      //   } else {
+                      //     setState(() {
+                      //       visibility = true;
+                      //     });
+                      //   }
+                      // } else {
+                      //   _answer.clear();
+                      //   setState(() {
+                      //     visibilityWait = true;
+                      //   });
+                      //   startPeriodicTask();
+                      //   setState(() {
+                      //     enterAnswer = false;
+                      //   });
+                      //   _setUserReady();
+                      //   areAllUsersReady();
+                      // }
+                      if (currentIndex <= 7){
+                        
                       }
                     },
                     child: const Text(
@@ -226,6 +233,7 @@ class _FindTrueState extends State<FindTrue> {
                       });
                       _setUserReady();
                       areAllUsersReady();
+                      startPeriodicTask();
                     },
                     child: const Text(
                       'ДАЛЕЕ',

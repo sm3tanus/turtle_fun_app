@@ -84,6 +84,13 @@ class _ChoiseGameState extends State<ChoiseGame> {
   }
 
   @override
+  void dispose() {
+    _timer?.cancel();
+
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
     return Scaffold(
       body: SafeArea(

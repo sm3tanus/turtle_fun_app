@@ -21,49 +21,10 @@ class _TablePointsState extends State<TablePoints> {
   @override
   void initState() {
     super.initState();
-    mainTimer();
-  }
-  Timer? _timer;
-  void mainTimer() {
-    _timer = Timer.periodic(
-      Duration(seconds: 2),
-      (Timer t) => checkInRoom(),
-    );
   }
 
-  Future<void> checkInRoom() async {
-    Room room = Room();
-    if (widget.nameRoom.isNotEmpty && widget.nameUser.isNotEmpty) {
-      if (await room.inRoom(widget.nameRoom, widget.nameUser)) {
-        if (await room.checkRoomsNamePlay(widget.nameRoom) == 1) {
-          if (await room.countUser(widget.nameRoom) != 1) {
-            _timer?.cancel();
-            Navigator.push(
-              context,
-              MaterialPageRoute(
-                builder: (context) => FindTrue(
-                  nameRoom: widget.nameRoom,
-                  nameUser: widget.nameUser,
-                ),
-              ),
-            );
-          }
-        } else if (await room.checkRoomsNamePlay(widget.nameRoom) == 2) {
-          if (await room.countUser(widget.nameRoom) != 1) {
-            Navigator.push(
-              context,
-              MaterialPageRoute(
-                builder: (context) => RulesAntiMafia(
-                  nameRoom: widget.nameRoom,
-                  nameUser: widget.nameUser,
-                ),
-              ),
-            );
-          }
-        }
-      }
-    }
-  }
+
+ 
   
   @override
   Widget build(BuildContext context) {

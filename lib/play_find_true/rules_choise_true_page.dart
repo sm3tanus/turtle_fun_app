@@ -80,6 +80,12 @@ class _RulesChoiseTrueState extends State<RulesChoiseTrue> {
   }
 
   @override
+  void dispose() {
+    _timer?.cancel();
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
     return Scaffold(
       body: SafeArea(
@@ -233,48 +239,49 @@ class _RulesChoiseTrueState extends State<RulesChoiseTrue> {
                       height: MediaQuery.of(context).size.height * 0.07,
                       child: ElevatedButton(
                         onPressed: () async {
-                          // if (await room.checkUserPlayInRoom(
-                          //     widget.nameRoom, widget.nameUser)) {
-                          //   room.addUsersToPlayRoom(
-                          //       widget.nameRoom, widget.nameUser);
-                          //   room.setUserNavigateTrue(
-                          //       widget.nameRoom, widget.nameUser);
-                          //   setState(() {
-                          //     visibilityWelcome = true;
-                          //   });
-                          // } else {
-                          //   setState(() {
-                          //     visibilityWelcome = false;
-                          //   });
-                          //   room.setUserNavigateTrue(
-                          //       widget.nameRoom, widget.nameUser);
-
-                          if (await room.checkLeaderInRoom(widget.nameRoom)) {
-                            room.addNameToRoom(widget.nameRoom, "НайдиИстину");
+                          if (await room.checkUserPlayInRoom(
+                              widget.nameRoom, widget.nameUser)) {
+                            room.addUsersToPlayRoom(
+                                widget.nameRoom, widget.nameUser);
+                            room.setUserNavigateTrue(
+                                widget.nameRoom, widget.nameUser);
                             setState(() {
-                              visibilityOne = false;
+                              visibilityWelcome = true;
                             });
-                            if (await room.countUser(widget.nameRoom) != 1) {
-                              Navigator.push(
-                                context,
-                                MaterialPageRoute(
-                                  builder: (context) => FindTrue(
-                                    nameRoom: widget.nameRoom,
-                                    nameUser: widget.nameUser,
+                          } else {
+                            setState(() {
+                              visibilityWelcome = false;
+                            });
+                            room.setUserNavigateTrue(
+                                widget.nameRoom, widget.nameUser);
+
+                            if (await room.checkLeaderInRoom(widget.nameRoom)) {
+                              room.addNameToRoom(
+                                  widget.nameRoom, "НайдиИстину");
+                              setState(() {
+                                visibilityOne = false;
+                              });
+                              if (await room.countUser(widget.nameRoom) != 1) {
+                                Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                    builder: (context) => FindTrue(
+                                      nameRoom: widget.nameRoom,
+                                      nameUser: widget.nameUser,
+                                    ),
                                   ),
-                                ),
-                              );
+                                );
+                              } else {
+                                setState(() {
+                                  visibilityOne = true;
+                                });
+                              }
                             } else {
                               setState(() {
-                                visibilityOne = true;
+                                visibilityOne = false;
+                                visibility = true;
                               });
                             }
-                            // } else {
-                            //   setState(() {
-                            //     visibilityOne = false;
-                            //     visibility = true;
-                            //   });
-                            // }
                           }
                         },
                         child: const Text(
