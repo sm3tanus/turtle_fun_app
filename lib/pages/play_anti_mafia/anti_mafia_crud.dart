@@ -26,6 +26,28 @@ class AntiMafiaCrud {
     await userDocRef.update({'role': 1});
   }
 
+  Future<void> updateIDinGameResults(String nameRoom, int id) async {
+    var filter = await FirebaseFirestore.instance
+        .collection('rooms')
+        .where('name', isEqualTo: nameRoom)
+        .get();
+
+    var roomId = filter.docs.first.id;
+    var filter2 = await FirebaseFirestore.instance
+        .collection('rooms')
+        .doc(roomId)
+        .collection('gameResults')
+        .where('id', isNotEqualTo: 10000)
+        .get();
+    var gameId = filter2.docs.first.id;
+    var filter3 = await FirebaseFirestore.instance
+        .collection('rooms')
+        .doc(roomId)
+        .collection('gameResults')
+        .doc(gameId)
+        .update({'id': id});
+  }
+
   Future<void> updateLeaderInRound(String nameRoom, int roundCount, int id,
       String nameUser, int membersCount, bool result) async {
     var filter = await FirebaseFirestore.instance

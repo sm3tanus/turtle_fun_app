@@ -6,6 +6,7 @@ import 'package:turtle_fun/pages/list_rooms.dart';
 import 'package:turtle_fun/pages/main_page.dart';
 import 'package:turtle_fun/pages/play_anti_mafia/game_anti_mafia.dart';
 import 'package:turtle_fun/pages/play_anti_mafia/rules_anti_mafia.dart';
+import 'package:turtle_fun/pages/play_anti_mafia/vote_anti_mafia.dart';
 import 'package:turtle_fun/pages/play_traitor/rules_traitor.dart';
 import 'package:turtle_fun/play_find_true/interface_answers.dart';
 import 'package:turtle_fun/play_find_true/rules_choise_true_page.dart';
@@ -402,7 +403,7 @@ class _ChoiseGameState extends State<ChoiseGame> {
                           Navigator.push(
                             context,
                             MaterialPageRoute(
-                              builder: (context) => RulesTraitor(
+                              builder: (context) => VoteAntiMafia(
                                 nameRoom: widget.nameRoom,
                                 nameUser: widget.nameUser,
                               ),
