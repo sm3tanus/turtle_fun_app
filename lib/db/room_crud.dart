@@ -1,4 +1,3 @@
-
 import 'package:cloud_firestore/cloud_firestore.dart';
 
 class Room {
@@ -20,7 +19,7 @@ class Room {
         .doc(docId)
         .collection('users')
         .doc()
-        .set({'name': leader, 'game': 1});
+        .set({'name': leader, 'game': 1, 'role': 0});
 
     await FirebaseFirestore.instance
         .collection('rooms')
@@ -253,9 +252,8 @@ class Room {
       if (await room.checkUserPlayInRoom(nameRoom, nameUser)) {
         room.addUsersToPlayRoom(nameRoom, nameUser);
         room.setUserNavigateTrue(nameRoom, nameUser);
-       
       }
-       return true;
+      return true;
     }
 
     return false;
@@ -279,13 +277,14 @@ class Room {
   }
 
   checkIsLeader(String nameRoom, String nameUser) async {
-      var filter = await FirebaseFirestore.instance
+    var filter = await FirebaseFirestore.instance
         .collection('rooms')
-        .where('name', isEqualTo: nameRoom).where('leader', isEqualTo: nameUser)
+        .where('name', isEqualTo: nameRoom)
+        .where('leader', isEqualTo: nameUser)
         .get();
-        if (filter.size != 0){
-          return true;
-        }
-        return false;
+    if (filter.size != 0) {
+      return true;
+    }
+    return false;
   }
 }
