@@ -45,66 +45,17 @@ class _RulesAntiMafiaState extends State<RulesAntiMafia> {
   DocumentReference? gameResultsDocRef;
   int? liderInRound;
   int randomIDForGameResult = 0;
+  AntiMafiaCrud amf = new AntiMafiaCrud();
   @override
   void initState() {
     super.initState();
-    _createGameResults();
+    _randomIDForGameResult();
     _fetchUsersPlay();
   }
 
   void _randomIDForGameResult() {
     Random random = new Random();
     randomIDForGameResult = random.nextInt(1000);
-  }
-
-  Future<void> _createGameResults() async {
-    checkLeaderInRoom();
-    if (leaderName == widget.nameUser) {
-      _randomIDForGameResult();
-      // Получаем документ комнаты
-      var roomSnapshot = await FirebaseFirestore.instance
-          .collection('rooms')
-          .where('name', isEqualTo: widget.nameRoom)
-          .get();
-
-      if (roomSnapshot.docs.isNotEmpty) {
-        var roomDocRef = roomSnapshot.docs.first.reference;
-
-        // Создаем документ gameResults с начальными данными
-        gameResultsDocRef = roomDocRef.collection('gameResults').doc();
-        await gameResultsDocRef!.set({
-          '1': {'result': false, 'membersCount': 3, 'leaderName': ''},
-          '2': {'result': false, 'membersCount': 2, 'leaderName': ''},
-          '3': {'result': false, 'membersCount': 3, 'leaderName': ''},
-          '4': {'result': false, 'membersCount': 2, 'leaderName': ''},
-          '5': {'result': false, 'membersCount': 3, 'leaderName': ''},
-          'id': randomIDForGameResult
-        });
-      }
-
-      if (gameResultsDocRef != null) {
-        var gameResultsSnapshot = await gameResultsDocRef!.get();
-
-        if (gameResultsSnapshot.exists) {
-          // Извлекаем данные как Map<String, dynamic>
-          Map<String, dynamic> gameResultsData = gameResultsSnapshot.data()!
-              as Map<String, dynamic>; // Преобразуем Object в Map
-
-          // Создаем новый Map для хранения результатов игры
-          usersGameResult = {};
-
-          // Перебираем данные по раундам
-          gameResultsData.forEach((roundKey, roundData) {
-            // Извлекаем данные для текущего раунда
-            if (roundData is Map<String, dynamic>) {
-              usersGameResult[roundKey] = roundData;
-            }
-          });
-
-          // Устанавливаем флаг после загрузки
-        }
-      }
-    }
   }
 
   Future<void> _fetchUsersPlay() async {
@@ -121,26 +72,21 @@ class _RulesAntiMafiaState extends State<RulesAntiMafia> {
       usersPlay = usersPlaySnapshot.docs
           .map((doc) => doc.data() as Map<String, dynamic>)
           .toList();
-
+      var roomId = roomSnapshot.docs.first.id;
+      var roomDoc = await FirebaseFirestore.instance
+          .collection('rooms')
+          .doc(roomId)
+          .get();
+      leaderName = roomDoc['leader'];
+      print(leaderName);
       // Устанавливаем флаг после загрузки
     }
     setState(() {});
-    isUsersPlayLoaded = true;
+
+    amf.updateIDinGameResults(widget.nameRoom, randomIDForGameResult);
 
     _assignRoles();
-  }
-
-  Future<void> checkLeaderInRoom() async {
-    var filter = await FirebaseFirestore.instance
-        .collection('rooms')
-        .where('name', isEqualTo: widget.nameRoom)
-        .get();
-
-    var roomId = filter.docs.first.id;
-    var roomDoc =
-        await FirebaseFirestore.instance.collection('rooms').doc(roomId).get();
-    leaderName = roomDoc['leader'];
-    print(leaderName);
+    isUsersPlayLoaded = true;
   }
 
   void _assignRoles() {
@@ -163,7 +109,6 @@ class _RulesAntiMafiaState extends State<RulesAntiMafia> {
             roles[randomIndex2] = 'Осведомитель';
             secondInformantIndex = randomIndex2;
 
-            AntiMafiaCrud amf = new AntiMafiaCrud();
             if (roles[randomIndex] == 'Осведомитель') {
               amf.updateRole(widget.nameRoom, usersPlay[randomIndex]['name']);
             }
@@ -180,204 +125,221 @@ class _RulesAntiMafiaState extends State<RulesAntiMafia> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      body: SafeArea(
-        child: Container(
-          alignment: Alignment.center,
-          child: Column(
-            children: [
-              Stack(
-                children: [
-                  Container(
-                    width: MediaQuery.of(context).size.width,
-                    height: MediaQuery.of(context).size.height * 0.23,
-                    decoration: const BoxDecoration(
-                      borderRadius: BorderRadius.only(
-                        bottomLeft: Radius.circular(500),
-                        bottomRight: Radius.circular(500),
-                      ),
-                      color: Color(0xffA1C096),
-                    ),
-                  ),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
+    return FutureBuilder<void>(
+        future: _fetchUsersPlay(),
+        builder: (context, snapshot) {
+          if (snapshot.hasData) {
+            return Center(child: CircularProgressIndicator());
+          } else if (snapshot.hasError) {
+            return Center(child: Text('Ошибка загрузки данных'));
+          } else if (isUsersPlayLoaded == true) {
+            return Scaffold(
+              body: SafeArea(
+                child: Container(
+                  alignment: Alignment.center,
+                  child: Column(
                     children: [
-                      SizedBox(
-                        height: MediaQuery.of(context).size.height * 0.15,
+                      Stack(
+                        children: [
+                          Container(
+                            width: MediaQuery.of(context).size.width,
+                            height: MediaQuery.of(context).size.height * 0.23,
+                            decoration: const BoxDecoration(
+                              borderRadius: BorderRadius.only(
+                                bottomLeft: Radius.circular(500),
+                                bottomRight: Radius.circular(500),
+                              ),
+                              color: Color(0xffA1C096),
+                            ),
+                          ),
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              SizedBox(
+                                height:
+                                    MediaQuery.of(context).size.height * 0.15,
+                              ),
+                              const Text(
+                                'ПРАВИЛА',
+                                style: TextStyle(
+                                    color: Color(0xff1E5541),
+                                    fontSize: 54,
+                                    fontWeight: FontWeight.bold),
+                              ),
+                            ],
+                          ),
+                        ],
                       ),
-                      const Text(
-                        'ПРАВИЛА',
-                        style: TextStyle(
-                            color: Color(0xff1E5541),
-                            fontSize: 54,
-                            fontWeight: FontWeight.bold),
+                      SizedBox(
+                        height: MediaQuery.of(context).size.height * 0.02,
+                      ),
+                      SizedBox(
+                        width: MediaQuery.of(context).size.width * 0.9,
+                        child: const Row(
+                          children: [
+                            Text(
+                              '1. ',
+                              style: TextStyle(
+                                  fontSize: 44,
+                                  fontWeight: FontWeight.bold,
+                                  color: Color(0xffA1C096)),
+                            ),
+                            Flexible(
+                              child: Text(
+                                'Грабители должны провести 5 ограблений, выбрав участников после обсуждения.',
+                                style: TextStyle(
+                                    fontSize: 20, color: Colors.white),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                      SizedBox(
+                        height: MediaQuery.of(context).size.height * 0.02,
+                      ),
+                      SizedBox(
+                        width: MediaQuery.of(context).size.width * 0.9,
+                        child: const Row(
+                          children: [
+                            Text(
+                              '2. ',
+                              style: TextStyle(
+                                fontSize: 44,
+                                fontWeight: FontWeight.bold,
+                                color: Color(0xffA1C096),
+                              ),
+                            ),
+                            Flexible(
+                              child: Text(
+                                'Полицейские осведомители должны мешать ограблениям и не выдать себя раньше времени.',
+                                style: TextStyle(
+                                    fontSize: 20, color: Colors.white),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                      SizedBox(
+                        height: MediaQuery.of(context).size.height * 0.02,
+                      ),
+                      SizedBox(
+                        width: MediaQuery.of(context).size.width * 0.9,
+                        child: const Row(
+                          children: [
+                            Text(
+                              '3. ',
+                              style: TextStyle(
+                                fontSize: 44,
+                                fontWeight: FontWeight.bold,
+                                color: Color(0xffA1C096),
+                              ),
+                            ),
+                            Flexible(
+                              child: Text(
+                                'Участники голосуют после всех ограблений, пытаясь вычислить осведомителей.',
+                                style: TextStyle(
+                                    fontSize: 20, color: Colors.white),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                      SizedBox(
+                        height: MediaQuery.of(context).size.height * 0.02,
+                      ),
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          SizedBox(
+                            width: MediaQuery.of(context).size.width * 0.4,
+                            height: MediaQuery.of(context).size.height * 0.07,
+                            child: ElevatedButton(
+                              style: const ButtonStyle(
+                                backgroundColor: WidgetStatePropertyAll(
+                                  Color(0xffA1C096),
+                                ),
+                              ),
+                              onPressed: () {
+                                Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                    builder: (context) => ChoiseGame(
+                                      nameRoom: widget.nameRoom,
+                                      nameUser: widget.nameUser,
+                                    ),
+                                  ),
+                                );
+                              },
+                              child: const Text(
+                                'НАЗАД',
+                                style: TextStyle(
+                                  color: Color(0xff1E5541),
+                                  fontSize: 25,
+                                ),
+                              ),
+                            ),
+                          ),
+                          SizedBox(
+                            width: MediaQuery.of(context).size.width * 0.05,
+                          ),
+                          SizedBox(
+                            width: MediaQuery.of(context).size.width * 0.4,
+                            height: MediaQuery.of(context).size.height * 0.07,
+                            child: ElevatedButton(
+                              onPressed: () async {
+                                Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                    builder: (context) => AntiMafiaGamePage(
+                                        nameRoom: widget.nameRoom,
+                                        nameUser: widget.nameUser,
+                                        usersGameResult: usersGameResult,
+                                        randomIDForGameResult:
+                                            randomIDForGameResult),
+                                  ),
+                                );
+                              },
+                              child: const Text(
+                                'ИГРАТЬ',
+                                style: TextStyle(
+                                  color: Color(0xff1E5541),
+                                  fontSize: 25,
+                                ),
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                      SizedBox(
+                        height: MediaQuery.of(context).size.height * 0.02,
+                      ),
+                      Visibility(
+                        visible: visibilityWelcome,
+                        child: const Text(
+                          'Добро пожаловать!\nНажмите играть еще раз.',
+                          textAlign: TextAlign.center,
+                          style: TextStyle(color: Colors.red, fontSize: 20),
+                        ),
+                      ),
+                      SizedBox(
+                        height: MediaQuery.of(context).size.height * 0.02,
+                      ),
+                      Visibility(
+                        visible: visibility,
+                        child: const Text(
+                          textAlign: TextAlign.center,
+                          'Дождитесь лидера комнаты!',
+                          style: TextStyle(color: Colors.red, fontSize: 20),
+                        ),
                       ),
                     ],
                   ),
-                ],
-              ),
-              SizedBox(
-                height: MediaQuery.of(context).size.height * 0.02,
-              ),
-              SizedBox(
-                width: MediaQuery.of(context).size.width * 0.9,
-                child: const Row(
-                  children: [
-                    Text(
-                      '1. ',
-                      style: TextStyle(
-                          fontSize: 44,
-                          fontWeight: FontWeight.bold,
-                          color: Color(0xffA1C096)),
-                    ),
-                    Flexible(
-                      child: Text(
-                        'Грабители должны провести 5 ограблений, выбрав участников после обсуждения.',
-                        style: TextStyle(fontSize: 20, color: Colors.white),
-                      ),
-                    ),
-                  ],
                 ),
               ),
-              SizedBox(
-                height: MediaQuery.of(context).size.height * 0.02,
-              ),
-              SizedBox(
-                width: MediaQuery.of(context).size.width * 0.9,
-                child: const Row(
-                  children: [
-                    Text(
-                      '2. ',
-                      style: TextStyle(
-                        fontSize: 44,
-                        fontWeight: FontWeight.bold,
-                        color: Color(0xffA1C096),
-                      ),
-                    ),
-                    Flexible(
-                      child: Text(
-                        'Полицейские осведомители должны мешать ограблениям и не выдать себя раньше времени.',
-                        style: TextStyle(fontSize: 20, color: Colors.white),
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-              SizedBox(
-                height: MediaQuery.of(context).size.height * 0.02,
-              ),
-              SizedBox(
-                width: MediaQuery.of(context).size.width * 0.9,
-                child: const Row(
-                  children: [
-                    Text(
-                      '3. ',
-                      style: TextStyle(
-                        fontSize: 44,
-                        fontWeight: FontWeight.bold,
-                        color: Color(0xffA1C096),
-                      ),
-                    ),
-                    Flexible(
-                      child: Text(
-                        'Участники голосуют после всех ограблений, пытаясь вычислить осведомителей.',
-                        style: TextStyle(fontSize: 20, color: Colors.white),
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-              SizedBox(
-                height: MediaQuery.of(context).size.height * 0.02,
-              ),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  SizedBox(
-                    width: MediaQuery.of(context).size.width * 0.4,
-                    height: MediaQuery.of(context).size.height * 0.07,
-                    child: ElevatedButton(
-                      style: const ButtonStyle(
-                        backgroundColor: WidgetStatePropertyAll(
-                          Color(0xffA1C096),
-                        ),
-                      ),
-                      onPressed: () {
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                            builder: (context) => ChoiseGame(
-                              nameRoom: widget.nameRoom,
-                              nameUser: widget.nameUser,
-                            ),
-                          ),
-                        );
-                      },
-                      child: const Text(
-                        'НАЗАД',
-                        style: TextStyle(
-                          color: Color(0xff1E5541),
-                          fontSize: 25,
-                        ),
-                      ),
-                    ),
-                  ),
-                  SizedBox(
-                    width: MediaQuery.of(context).size.width * 0.05,
-                  ),
-                  SizedBox(
-                    width: MediaQuery.of(context).size.width * 0.4,
-                    height: MediaQuery.of(context).size.height * 0.07,
-                    child: ElevatedButton(
-                      onPressed: () async {
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                            builder: (context) => AntiMafiaGamePage(
-                                nameRoom: widget.nameRoom,
-                                nameUser: widget.nameUser,
-                                usersGameResult: usersGameResult,
-                                randomIDForGameResult: randomIDForGameResult),
-                          ),
-                        );
-                      },
-                      child: const Text(
-                        'ИГРАТЬ',
-                        style: TextStyle(
-                          color: Color(0xff1E5541),
-                          fontSize: 25,
-                        ),
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-              SizedBox(
-                height: MediaQuery.of(context).size.height * 0.02,
-              ),
-              Visibility(
-                visible: visibilityWelcome,
-                child: const Text(
-                  'Добро пожаловать!\nНажмите играть еще раз.',
-                  textAlign: TextAlign.center,
-                  style: TextStyle(color: Colors.red, fontSize: 20),
-                ),
-              ),
-              SizedBox(
-                height: MediaQuery.of(context).size.height * 0.02,
-              ),
-              Visibility(
-                visible: visibility,
-                child: const Text(
-                  textAlign: TextAlign.center,
-                  'Дождитесь лидера комнаты!',
-                  style: TextStyle(color: Colors.red, fontSize: 20),
-                ),
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
+            );
+          } else {
+            return Center(child: CircularProgressIndicator());
+          }
+        });
   }
 }

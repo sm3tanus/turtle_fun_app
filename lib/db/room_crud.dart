@@ -24,9 +24,16 @@ class Room {
     await FirebaseFirestore.instance
         .collection('rooms')
         .doc(docId)
-        .collection('usersPlay')
+        .collection('gameResults')
         .doc()
-        .set({'name': leader, 'navigate': false, 'ready': false});
+        .set({
+      '1': {'result': false, 'membersCount': 3, 'leaderName': ''},
+      '2': {'result': false, 'membersCount': 2, 'leaderName': ''},
+      '3': {'result': false, 'membersCount': 3, 'leaderName': ''},
+      '4': {'result': false, 'membersCount': 2, 'leaderName': ''},
+      '5': {'result': false, 'membersCount': 3, 'leaderName': ''},
+      'id': 0
+    });
   }
 
   Future<void> addUsersToRoom(String name, String nameUser) async {
