@@ -104,7 +104,7 @@ class _VoteAntiMafiaState extends State<VoteAntiMafia> {
               ],
             ),
             const SizedBox(
-              height: 30,
+              height: 10,
             ),
             Row(
               mainAxisAlignment: MainAxisAlignment.center,
