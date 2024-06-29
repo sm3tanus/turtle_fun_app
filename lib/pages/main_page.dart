@@ -82,6 +82,7 @@ class _MainPageState extends State<MainPage> {
                     cursorColor: Color(0xffA1FF80),
                     textAlign: TextAlign.center,
                     controller: _name,
+                    maxLength: 10,
                     style: TextStyle(color: Colors.white, fontSize: 24),
                     decoration: InputDecoration(
                       hintText: 'Введите имя',
@@ -124,6 +125,7 @@ class _MainPageState extends State<MainPage> {
                     cursorColor: Color(0xffA1FF80),
                     textAlign: TextAlign.center,
                     controller: _nameRoom,
+                    maxLength: 10,
                     style: TextStyle(color: Colors.white, fontSize: 24),
                     decoration: InputDecoration(
                         hintText: 'Название комнаты',

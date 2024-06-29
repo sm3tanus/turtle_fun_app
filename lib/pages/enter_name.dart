@@ -29,7 +29,7 @@ class _EnterNameState extends State<EnterName> {
             child: Column(
               children: [
                 SizedBox(
-                  width: MediaQuery.of(context).size.width * 0.6,
+                  width: MediaQuery.of(context).size.width * 0.9,
                   child: Row(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
@@ -74,6 +74,7 @@ class _EnterNameState extends State<EnterName> {
                     cursorColor: Color(0xffA1FF80),
                     textAlign: TextAlign.center,
                     controller: _name,
+                    maxLength: 10,
                     style: TextStyle(color: Colors.white, fontSize: 24),
                     decoration: InputDecoration(
                         hintText: 'Введите имя',

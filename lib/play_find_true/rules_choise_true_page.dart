@@ -1,7 +1,9 @@
-import 'package:cloud_firestore/cloud_firestore.dart';
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:turtle_fun/db/room_crud.dart';
 import 'package:turtle_fun/pages/choise_game_page.dart';
+import 'package:turtle_fun/pages/play_anti_mafia/rules_anti_mafia.dart';
 import 'package:turtle_fun/play_find_true/interface_answers.dart';
 
 // ignore: must_be_immutable
@@ -18,49 +20,63 @@ class _RulesChoiseTrueState extends State<RulesChoiseTrue> {
   bool visibility = false;
   bool visibilityWelcome = false;
   bool visibilityOne = false;
+  bool visibleLeader = false;
+  Room room = Room();
   @override
   void initState() {
     super.initState();
-    inRoom();
+    check();
+    mainTimer();
   }
 
-  Future inRoom() async {
-    if (await countUser() != 1) {
-      Room room = Room();
-      if (await room.checkLeaderInRoom(widget.nameRoom)) {
-        if (await room.checkUserPlayInRoom(widget.nameRoom, widget.nameUser)) {
-          room.addUsersToPlayRoom(widget.nameRoom, widget.nameUser);
-          room.setUserNavigateTrue(widget.nameRoom, widget.nameUser);
-          setState(() {
-            visibilityWelcome = true;
-          });
-        }
-        Navigator.push(
-          context,
-          MaterialPageRoute(
-            builder: (context) => FindTrue(
-              nameRoom: widget.nameRoom,
-              nameUser: widget.nameUser,
-            ),
-          ),
-        );
-      }
+  check() async {
+    if (await room.checkIsLeader(widget.nameRoom, widget.nameUser)) {
+      setState(() {
+        visibleLeader = true;
+      });
     }
   }
 
-  Future<int> countUser() async {
-    var filter = await FirebaseFirestore.instance
-        .collection('rooms')
-        .where('name', isEqualTo: widget.nameRoom)
-        .get();
+  Timer? _timer;
+  void mainTimer() {
+    _timer = Timer.periodic(
+      Duration(seconds: 2),
+      (Timer t) => checkInRoom(),
+    );
+  }
 
-    var roomId = filter.docs.first.id;
-    var roomDoc = await FirebaseFirestore.instance
-        .collection('rooms')
-        .doc(roomId)
-        .collection('usersPlay')
-        .get();
-    return roomDoc.size;
+  Future<void> checkInRoom() async {
+    Room room = Room();
+    if (widget.nameRoom.isNotEmpty && widget.nameUser.isNotEmpty) {
+      if (await room.inRoom(widget.nameRoom, widget.nameUser)) {
+        if (await room.checkRoomsNamePlay(widget.nameRoom) == 1) {
+          if (await room.countUser(widget.nameRoom) != 1) {
+            _timer?.cancel();
+            Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (context) => FindTrue(
+                  nameRoom: widget.nameRoom,
+                  nameUser: widget.nameUser,
+                ),
+              ),
+            );
+          }
+        } else if (await room.checkRoomsNamePlay(widget.nameRoom) == 2) {
+          if (await room.countUser(widget.nameRoom) != 1) {
+            Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (context) => RulesAntiMafia(
+                  nameRoom: widget.nameRoom,
+                  nameUser: widget.nameUser,
+                ),
+              ),
+            );
+          }
+        }
+      }
+    }
   }
 
   @override
@@ -210,33 +226,35 @@ class _RulesChoiseTrueState extends State<RulesChoiseTrue> {
                   SizedBox(
                     width: MediaQuery.of(context).size.width * 0.05,
                   ),
-                  SizedBox(
-                    width: MediaQuery.of(context).size.width * 0.4,
-                    height: MediaQuery.of(context).size.height * 0.07,
-                    child: ElevatedButton(
-                      onPressed: () async {
-                        Room room = Room();
+                  Visibility(
+                    visible: visibleLeader,
+                    child: SizedBox(
+                      width: MediaQuery.of(context).size.width * 0.4,
+                      height: MediaQuery.of(context).size.height * 0.07,
+                      child: ElevatedButton(
+                        onPressed: () async {
+                          // if (await room.checkUserPlayInRoom(
+                          //     widget.nameRoom, widget.nameUser)) {
+                          //   room.addUsersToPlayRoom(
+                          //       widget.nameRoom, widget.nameUser);
+                          //   room.setUserNavigateTrue(
+                          //       widget.nameRoom, widget.nameUser);
+                          //   setState(() {
+                          //     visibilityWelcome = true;
+                          //   });
+                          // } else {
+                          //   setState(() {
+                          //     visibilityWelcome = false;
+                          //   });
+                          //   room.setUserNavigateTrue(
+                          //       widget.nameRoom, widget.nameUser);
 
-                        if (await room.checkUserPlayInRoom(
-                            widget.nameRoom, widget.nameUser)) {
-                          room.addUsersToPlayRoom(
-                              widget.nameRoom, widget.nameUser);
-                          room.setUserNavigateTrue(
-                              widget.nameRoom, widget.nameUser);
-                          setState(() {
-                            visibilityWelcome = true;
-                          });
-                        } else {
-                          setState(() {
-                            visibilityWelcome = false;
-                          });
-                          if (await countUser() != 1) {
-                            if (await room.checkLeaderInRoom(widget.nameRoom)) {
-                              room.addNameToRoom(
-                                  widget.nameRoom, "НайдиИстину");
-                              setState(() {
-                                visibilityOne = false;
-                              });
+                          if (await room.checkLeaderInRoom(widget.nameRoom)) {
+                            room.addNameToRoom(widget.nameRoom, "НайдиИстину");
+                            setState(() {
+                              visibilityOne = false;
+                            });
+                            if (await room.countUser(widget.nameRoom) != 1) {
                               Navigator.push(
                                 context,
                                 MaterialPageRoute(
@@ -248,22 +266,23 @@ class _RulesChoiseTrueState extends State<RulesChoiseTrue> {
                               );
                             } else {
                               setState(() {
-                                visibilityOne = false;
-                                visibility = true;
+                                visibilityOne = true;
                               });
                             }
-                          } else {
-                            setState(() {
-                              visibilityOne = true;
-                            });
+                            // } else {
+                            //   setState(() {
+                            //     visibilityOne = false;
+                            //     visibility = true;
+                            //   });
+                            // }
                           }
-                        }
-                      },
-                      child: const Text(
-                        'ИГРАТЬ',
-                        style: TextStyle(
-                          color: Color(0xff1E5541),
-                          fontSize: 25,
+                        },
+                        child: const Text(
+                          'ИГРАТЬ',
+                          style: TextStyle(
+                            color: Color(0xff1E5541),
+                            fontSize: 25,
+                          ),
                         ),
                       ),
                     ),

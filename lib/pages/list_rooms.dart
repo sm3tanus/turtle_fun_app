@@ -1,10 +1,14 @@
 // ignore_for_file: prefer_const_constructors, prefer_const_literals_to_create_immutables
 
+import 'dart:async';
+
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:turtle_fun/db/room_crud.dart';
 import 'package:turtle_fun/pages/choise_game_page.dart';
 import 'package:turtle_fun/pages/enter_name.dart';
+import 'package:turtle_fun/pages/play_anti_mafia/rules_anti_mafia.dart';
+import 'package:turtle_fun/play_find_true/interface_answers.dart';
 
 // ignore: must_be_immutable
 class ListRooms extends StatefulWidget {
@@ -29,7 +33,48 @@ class _ListRoomsState extends State<ListRooms> {
     super.initState();
     _fetchRooms();
   }
+  
+  Timer? _timer;
+  void mainTimer() {
+    _timer = Timer.periodic(
+      Duration(seconds: 2),
+      (Timer t) => checkInRoom(),
+    );
+  }
 
+  Future<void> checkInRoom() async {
+    Room room = Room();
+    if (widget.nameRoom.isNotEmpty && widget.nameUser.isNotEmpty) {
+      if (await room.inRoom(widget.nameRoom, widget.nameUser)) {
+        if (await room.checkRoomsNamePlay(widget.nameRoom) == 1) {
+          if (await room.countUser(widget.nameRoom) != 1) {
+            _timer?.cancel();
+            Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (context) => FindTrue(
+                  nameRoom: widget.nameRoom,
+                  nameUser: widget.nameUser,
+                ),
+              ),
+            );
+          }
+        } else if (await room.checkRoomsNamePlay(widget.nameRoom) == 2) {
+          if (await room.countUser(widget.nameRoom) != 1) {
+            Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (context) => RulesAntiMafia(
+                  nameRoom: widget.nameRoom,
+                  nameUser: widget.nameUser,
+                ),
+              ),
+            );
+          }
+        }
+      }
+    }
+  }
 
   Future<void> _fetchRooms() async {
     var snapshot = await FirebaseFirestore.instance.collection('rooms').get();

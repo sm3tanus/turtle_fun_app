@@ -253,8 +253,9 @@ class Room {
       if (await room.checkUserPlayInRoom(nameRoom, nameUser)) {
         room.addUsersToPlayRoom(nameRoom, nameUser);
         room.setUserNavigateTrue(nameRoom, nameUser);
-        return true;
+       
       }
+       return true;
     }
 
     return false;
@@ -275,5 +276,16 @@ class Room {
       }
     }
     return 3;
+  }
+
+  checkIsLeader(String nameRoom, String nameUser) async {
+      var filter = await FirebaseFirestore.instance
+        .collection('rooms')
+        .where('name', isEqualTo: nameRoom).where('leader', isEqualTo: nameUser)
+        .get();
+        if (filter.size != 0){
+          return true;
+        }
+        return false;
   }
 }
