@@ -293,7 +293,6 @@ class _RulesAntiMafiaState extends State<RulesAntiMafia> {
                                     builder: (context) => AntiMafiaGamePage(
                                         nameRoom: widget.nameRoom,
                                         nameUser: widget.nameUser,
-                                        usersGameResult: usersGameResult,
                                         randomIDForGameResult:
                                             randomIDForGameResult),
                                   ),

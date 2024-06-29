@@ -6,13 +6,12 @@ import 'package:turtle_fun/pages/play_anti_mafia/anti_mafia_crud.dart';
 class AntiMafiaGamePage extends StatefulWidget {
   String nameRoom;
   String nameUser;
-  Map<String, dynamic> usersGameResult;
+
   int randomIDForGameResult;
   AntiMafiaGamePage(
       {super.key,
       required this.nameRoom,
       required this.nameUser,
-      required this.usersGameResult,
       required this.randomIDForGameResult});
 
   @override
@@ -29,6 +28,7 @@ class _AntiMafiaGamePageState extends State<AntiMafiaGamePage> {
   bool isRobberyFinished = false;
   bool isRobberySuccess = true;
   int currentUserIndex = 0;
+  Map<String, dynamic> usersGameResult = {};
   List<Map<String, dynamic>> usersPlay = [];
   bool isUsersPlayLoaded = false;
   bool isUsersGameResultLoaded = false;
@@ -56,13 +56,34 @@ class _AntiMafiaGamePageState extends State<AntiMafiaGamePage> {
 
     if (roomSnapshot.docs.isNotEmpty) {
       var roomDocRef = roomSnapshot.docs.first.reference;
-
+      var roomId = roomSnapshot.docs.first.id;
       var usersPlaySnapshot = await roomDocRef.collection('users').get();
 
       usersPlay = usersPlaySnapshot.docs
           .map((doc) => doc.data() as Map<String, dynamic>)
           .toList();
 
+      if (!isUsersGameResultLoaded) {
+        // Получаем список документов gameResults
+        QuerySnapshot gameResultsSnapshot = await FirebaseFirestore.instance
+            .collection('rooms') // Обращаемся к коллекции 'rooms'
+            .doc(roomId) // Указываем ID комнаты
+            .collection('gameResults') // Указываем имя подколлекции
+            .where('id',
+                isEqualTo: widget
+                    .randomIDForGameResult) // Ограничиваем выборку одним документом
+            .get();
+
+        if (gameResultsSnapshot.docs.isNotEmpty) {
+          // Извлекаем данные из первого документа
+          DocumentSnapshot doc = gameResultsSnapshot.docs.first;
+
+          // Записываем данные в usersGameResult
+          usersGameResult = doc.data() as Map<String, dynamic>;
+
+          isUsersGameResultLoaded = true; // Устанавливаем флаг после загрузки
+        }
+      }
       _findCurrentUserIndex();
       _findSecondInformant();
       _chooseLeader();
@@ -82,9 +103,10 @@ class _AntiMafiaGamePageState extends State<AntiMafiaGamePage> {
       leaderInRoundIndex = random.nextInt(usersPlay.length);
 
       leaderInRound = usersPlay[leaderInRoundIndex]['name'];
-      widget.usersGameResult['$roundCount']['leaderName'] = leaderInRound;
+      usersGameResult['$roundCount']['leaderName'] = leaderInRound;
+      print('лидер в раунде: $leaderInRound');
       if (roundCount == 1 || roundCount == 3 || roundCount == 5) {
-        widget.usersGameResult['$roundCount']['membersCount'] = membersCount;
+        usersGameResult['$roundCount']['membersCount'] = membersCount;
         amf.updateLeaderInRound(
             widget.nameRoom,
             roundCount,
@@ -93,16 +115,16 @@ class _AntiMafiaGamePageState extends State<AntiMafiaGamePage> {
             membersCount,
             result);
       } else {
-        widget.usersGameResult['$roundCount']['membersCount'] = membersCount2;
+        usersGameResult['$roundCount']['membersCount'] = membersCount2;
         amf.updateLeaderInRound(
             widget.nameRoom,
             roundCount,
             widget.randomIDForGameResult,
             widget.nameUser,
-            membersCount,
+            membersCount2,
             result);
       }
-      widget.usersGameResult['$roundCount']['result'] = result;
+      usersGameResult['$roundCount']['result'] = result;
     }
   }
 
@@ -142,12 +164,11 @@ class _AntiMafiaGamePageState extends State<AntiMafiaGamePage> {
     if (robberyTeam.contains(index)) {
       robberyTeam.remove(index);
     } else if (robberyTeam.length <
-            widget.usersGameResult['$roundCount']['membersCount'] &&
+            usersGameResult['$roundCount']['membersCount'] &&
         (roundCount == 1)) {
       robberyTeam.add(index);
     }
-    if (robberyTeam.length ==
-        widget.usersGameResult['$roundCount']['membersCount']) {
+    if (robberyTeam.length == usersGameResult['$roundCount']['membersCount']) {
       setState(() {});
     }
   }
@@ -165,9 +186,9 @@ class _AntiMafiaGamePageState extends State<AntiMafiaGamePage> {
   //         (usersPlay[usersPlay.indexOf(user)] != 'Осведомитель' && success))) {
   //       setState(() {
   //         isRobberyFinished = true;
-  //         widget.usersGameResult['firstRound']['result'] = success;
+  //         usersGameResult['firstRound']['result'] = success;
 
-  //         if (roundCount < widget.usersGameResult.length) {
+  //         if (roundCount < usersGameResult.length) {
   //           roundCount++;
   //           isRobberyStarted = false;
   //           robberyTeam.clear();
@@ -187,9 +208,7 @@ class _AntiMafiaGamePageState extends State<AntiMafiaGamePage> {
         builder: (context, snapshot) {
           if (snapshot.connectionState == ConnectionState.waiting) {
             return Center(child: CircularProgressIndicator());
-          } else if (snapshot.hasError) {
-            return Center(child: Text('Ошибка загрузки данных'));
-          } else if (isUsersPlayLoaded) {
+          } else if (isUsersPlayLoaded && isUsersGameResultLoaded) {
             return Scaffold(
                 backgroundColor: Color.fromRGBO(30, 85, 65, 1),
                 body: SafeArea(
@@ -206,35 +225,41 @@ class _AntiMafiaGamePageState extends State<AntiMafiaGamePage> {
                       SingleChildScrollView(
                         scrollDirection: Axis.horizontal,
                         child: Row(
-                          children: widget.usersGameResult.entries.map((entry) {
-                            final roundKey = entry.key;
-                            final roundData =
-                                entry.value as Map<String, dynamic>;
+                          children: usersGameResult.keys.map((roundKey) {
+                            final roundData = usersGameResult[roundKey];
 
-                            return Container(
-                              width: 60,
-                              height: 60,
-                              decoration: BoxDecoration(
-                                color: roundData['result'] == true
-                                    ? Colors.green
-                                    : roundData['result'] == false
-                                        ? Colors.red
-                                        : null,
-                                borderRadius: BorderRadius.circular(8.0),
-                              ),
-                              child: Padding(
-                                padding: const EdgeInsets.all(8.0),
-                                child: Center(
-                                  child: Text(
-                                    '${roundData['membersCount']}',
-                                    style: const TextStyle(
-                                      fontWeight: FontWeight.bold,
-                                      fontSize: 20,
+                            // Проверяем, является ли roundData Map
+                            if (roundData is Map<String, dynamic>) {
+                              // Пример отображения результата раунда с использованием Container:
+                              return Container(
+                                width: 60,
+                                height: 60,
+                                decoration: BoxDecoration(
+                                  color: roundData['result'] == true
+                                      ? Colors.green
+                                      : roundData['result'] == false
+                                          ? Colors.red
+                                          : null, // Можно добавить другое значение для цвета, если 'result' не true или false
+                                  borderRadius: BorderRadius.circular(8.0),
+                                ),
+                                child: Padding(
+                                  padding: const EdgeInsets.all(8.0),
+                                  child: Center(
+                                    child: Text(
+                                      '${roundData['membersCount']}',
+                                      style: const TextStyle(
+                                        fontWeight: FontWeight.bold,
+                                        fontSize: 20,
+                                      ),
                                     ),
                                   ),
                                 ),
-                              ),
-                            );
+                              );
+                            } else {
+                              // Обработка случая, когда roundData не является Map
+                              // Например, вы можете вывести сообщение о том, что данные некорректны
+                              return CircularProgressIndicator();
+                            }
                           }).toList(),
                         ),
                       ),
@@ -290,7 +315,7 @@ class _AntiMafiaGamePageState extends State<AntiMafiaGamePage> {
                                   // Кнопка "Начать ограбление"
                                   if (!isRobberyStarted &&
                                       robberyTeam.length ==
-                                          widget.usersGameResult['$roundCount']
+                                          usersGameResult['$roundCount']
                                               ['membersCount'])
                                     Padding(
                                       padding: const EdgeInsets.all(16.0),
@@ -343,7 +368,7 @@ class _AntiMafiaGamePageState extends State<AntiMafiaGamePage> {
                                   onPressed: () {
                                     result = true;
                                     roundCountPlus();
-                                    print(widget.usersGameResult['$roundCount']
+                                    print(usersGameResult['$roundCount']
                                         ['result']);
                                     setState(() {});
                                   },
