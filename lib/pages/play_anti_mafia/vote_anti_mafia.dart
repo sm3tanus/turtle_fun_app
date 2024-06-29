@@ -1,15 +1,36 @@
 import 'package:flutter/material.dart';
+import 'package:turtle_fun/pages/data_mafia/vote_data.dart';
 
 class VoteAntiMafia extends StatefulWidget {
-  String nameRoom;
-  String nameUser;
-  VoteAntiMafia({super.key, required this.nameRoom, required this.nameUser});
+  final String nameRoom;
+  final String nameUser;
+
+  const VoteAntiMafia(
+      {Key? key, required this.nameRoom, required this.nameUser})
+      : super(key: key);
 
   @override
-  State<VoteAntiMafia> createState() => _VoteAntiMafiaState();
+  _VoteAntiMafiaState createState() => _VoteAntiMafiaState();
 }
 
 class _VoteAntiMafiaState extends State<VoteAntiMafia> {
+  DatabaseService databaseService =
+      DatabaseService(); // Предположим, что у вас есть класс DatabaseService
+
+  List<Map<String, dynamic>> usersPlay = []; // Список пользователей
+
+  @override
+  void initState() {
+    super.initState();
+    DatabaseService(); // Remove this line
+    // Replace it with:
+    _loadUserPlayData(); // Call the new function that contains awaited operation
+  }
+
+  Future<void> _loadUserPlayData() async {
+    await DatabaseService(); // Wait for the completion of the asynchronous operation
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -50,7 +71,7 @@ class _VoteAntiMafiaState extends State<VoteAntiMafia> {
                     color: Colors.transparent,
                   ),
                   child: const Text(
-                    'У вас столько то голосований',
+                    'У вас столько-то голосований',
                     style: TextStyle(
                       color: Colors.white,
                       fontWeight: FontWeight.bold,
@@ -73,31 +94,21 @@ class _VoteAntiMafiaState extends State<VoteAntiMafia> {
                     borderRadius: BorderRadius.circular(40.0),
                   ),
                   child: ListView(
-                    children: const <Widget>[
-                      SizedBox(
-                        height: 20,
-                      ),
-                      Center(
-                        child: Text(
-                          'Элемент 1',
-                          style: TextStyle(
-                            color: Colors.white,
-                            fontWeight: FontWeight.bold,
+                    children: [
+                      for (var userPlay
+                          in usersPlay) // Заменяем databaseService.usersPlay на usersPlay
+                        Padding(
+                          padding: EdgeInsets.symmetric(vertical: 10.0),
+                          child: Center(
+                            child: Text(
+                              userPlay['username'],
+                              style: TextStyle(
+                                color: Colors.white,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
                           ),
                         ),
-                      ),
-                      SizedBox(
-                        height: 20,
-                      ),
-                      Center(
-                        child: Text(
-                          'Элемент 2',
-                          style: TextStyle(
-                            color: Colors.white,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                      ),
                     ],
                   ),
                 )
@@ -114,14 +125,15 @@ class _VoteAntiMafiaState extends State<VoteAntiMafia> {
                   style: ElevatedButton.styleFrom(
                     shape: const CircleBorder(),
                     elevation: 5,
-                    backgroundColor: const Color(0xffA1FF80),
+                    iconColor: const Color(0xffA1FF80),
                   ),
-                  child: const Padding(
-                    padding: EdgeInsets.all(50.0),
+                  child: Padding(
+                    // Добавляем Padding для текста кнопки
+                    padding: EdgeInsets.all(10.0),
                     child: Text(
                       'Голосовать',
                       style: TextStyle(
-                        color: Color.fromRGBO(30, 85, 65, 1),
+                        color: Colors.white,
                         fontWeight: FontWeight.bold,
                       ),
                     ),
