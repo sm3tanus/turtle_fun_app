@@ -44,10 +44,64 @@ class _RulesAntiMafiaState extends State<RulesAntiMafia> {
   bool isUsersGameResultLoaded = false;
   DocumentReference? gameResultsDocRef;
   int? liderInRound;
+  int randomIDForGameResult = 0;
   @override
   void initState() {
     super.initState();
+    _createGameResults();
     _fetchUsersPlay();
+  }
+
+  void _randomIDForGameResult() {
+    Random random = new Random();
+    randomIDForGameResult = random.nextInt(1000);
+  }
+
+  Future<void> _createGameResults() async {
+    _randomIDForGameResult();
+    // Получаем документ комнаты
+    var roomSnapshot = await FirebaseFirestore.instance
+        .collection('rooms')
+        .where('name', isEqualTo: widget.nameRoom)
+        .get();
+
+    if (roomSnapshot.docs.isNotEmpty) {
+      var roomDocRef = roomSnapshot.docs.first.reference;
+
+      // Создаем документ gameResults с начальными данными
+      gameResultsDocRef = roomDocRef.collection('gameResults').doc();
+      await gameResultsDocRef!.set({
+        '1': {'result': false, 'membersCount': 3, 'leaderName': ''},
+        '2': {'result': false, 'membersCount': 2, 'leaderName': ''},
+        '3': {'result': false, 'membersCount': 3, 'leaderName': ''},
+        '4': {'result': false, 'membersCount': 2, 'leaderName': ''},
+        '5': {'result': false, 'membersCount': 3, 'leaderName': ''},
+        'id': randomIDForGameResult
+      });
+    }
+
+    if (gameResultsDocRef != null) {
+      var gameResultsSnapshot = await gameResultsDocRef!.get();
+
+      if (gameResultsSnapshot.exists) {
+        // Извлекаем данные как Map<String, dynamic>
+        Map<String, dynamic> gameResultsData = gameResultsSnapshot.data()!
+            as Map<String, dynamic>; // Преобразуем Object в Map
+
+        // Создаем новый Map для хранения результатов игры
+        usersGameResult = {};
+
+        // Перебираем данные по раундам
+        gameResultsData.forEach((roundKey, roundData) {
+          // Извлекаем данные для текущего раунда
+          if (roundData is Map<String, dynamic>) {
+            usersGameResult[roundKey] = roundData;
+          }
+        });
+
+        // Устанавливаем флаг после загрузки
+      }
+    }
   }
 
   Future<void> _fetchUsersPlay() async {
@@ -87,33 +141,35 @@ class _RulesAntiMafiaState extends State<RulesAntiMafia> {
   }
 
   void _assignRoles() {
-    if (isUsersPlayLoaded && usersPlay.isNotEmpty) {
-      roles = List.generate(usersPlay.length, (index) => 'Грабитель');
+    if (widget.nameUser != leaderName) {
+      if (isUsersPlayLoaded && usersPlay.isNotEmpty) {
+        roles = List.generate(usersPlay.length, (index) => 'Грабитель');
 
-      final random = Random();
+        final random = Random();
 
-      // Выбираем двух осведомителей (только при первом запуске)
-      for (int i = 0; i < 1; i++) {
-        final randomIndex = random.nextInt(usersPlay.length);
-        final randomIndex2 = random.nextInt(usersPlay.length);
-        if (roles[randomIndex] != 'Осведомитель' &&
-            roles[randomIndex2] != 'Осведомитель' &&
-            randomIndex2 != randomIndex &&
-            usersPlay[randomIndex2]['name'] != widget.nameUser) {
-          roles[randomIndex] = 'Осведомитель';
-          firstInformantIndex = randomIndex;
-          roles[randomIndex2] = 'Осведомитель';
-          secondInformantIndex = randomIndex2;
+        // Выбираем двух осведомителей (только при первом запуске)
+        for (int i = 0; i < 1; i++) {
+          final randomIndex = random.nextInt(usersPlay.length);
+          final randomIndex2 = random.nextInt(usersPlay.length);
+          if (roles[randomIndex] != 'Осведомитель' &&
+              roles[randomIndex2] != 'Осведомитель' &&
+              randomIndex2 != randomIndex &&
+              usersPlay[randomIndex2]['name'] != widget.nameUser) {
+            roles[randomIndex] = 'Осведомитель';
+            firstInformantIndex = randomIndex;
+            roles[randomIndex2] = 'Осведомитель';
+            secondInformantIndex = randomIndex2;
 
-          AntiMafiaCrud amf = new AntiMafiaCrud();
-          if (roles[randomIndex] == 'Осведомитель') {
-            amf.updateRole(widget.nameRoom, usersPlay[randomIndex]['name']);
+            AntiMafiaCrud amf = new AntiMafiaCrud();
+            if (roles[randomIndex] == 'Осведомитель') {
+              amf.updateRole(widget.nameRoom, usersPlay[randomIndex]['name']);
+            }
+            if (roles[randomIndex2] == 'Осведомитель') {
+              amf.updateRole(widget.nameRoom, usersPlay[randomIndex2]['name']);
+            }
+          } else {
+            i--;
           }
-          if (roles[randomIndex2] == 'Осведомитель') {
-            amf.updateRole(widget.nameRoom, usersPlay[randomIndex2]['name']);
-          }
-        } else {
-          i--;
         }
       }
     }
@@ -275,9 +331,10 @@ class _RulesAntiMafiaState extends State<RulesAntiMafia> {
                           context,
                           MaterialPageRoute(
                             builder: (context) => AntiMafiaGamePage(
-                              nameRoom: widget.nameRoom,
-                              nameUser: widget.nameUser,
-                            ),
+                                nameRoom: widget.nameRoom,
+                                nameUser: widget.nameUser,
+                                usersGameResult: usersGameResult,
+                                randomIDForGameResult: randomIDForGameResult),
                           ),
                         );
                       },

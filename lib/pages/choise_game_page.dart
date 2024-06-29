@@ -65,7 +65,7 @@ class _ChoiseGameState extends State<ChoiseGame> {
             Navigator.push(
               context,
               MaterialPageRoute(
-                builder: (context) => AntiMafiaGamePage(
+                builder: (context) => RulesAntiMafia(
                   nameRoom: widget.nameRoom,
                   nameUser: widget.nameUser,
                 ),

@@ -26,8 +26,8 @@ class AntiMafiaCrud {
     await userDocRef.update({'role': 1});
   }
 
-  Future<void> updateLeaderInRound(
-      String nameRoom, int roundCount, int id, String nameUser) async {
+  Future<void> updateLeaderInRound(String nameRoom, int roundCount, int id,
+      String nameUser, int membersCount, bool result) async {
     var filter = await FirebaseFirestore.instance
         .collection('rooms')
         .where('name', isEqualTo: nameRoom)
@@ -52,7 +52,9 @@ class AntiMafiaCrud {
     // Обновляем имя лидера в нужной части документа
     await gameResultsDocRef.update({
       '$roundCount': {
-        'leaderName': nameUser
+        'leaderName': nameUser,
+        'membersCount': membersCount,
+        'result': result
         // ... другие поля, если нужно
       }
     });
