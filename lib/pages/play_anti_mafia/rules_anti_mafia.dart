@@ -84,8 +84,6 @@ class _RulesAntiMafiaState extends State<RulesAntiMafia> {
     }
     setState(() {});
 
-    amf.updateIDinGameResults(widget.nameRoom, randomIDForGameResult);
-
     _assignRoles();
     isUsersPlayLoaded = true;
   }
@@ -113,11 +111,12 @@ class _RulesAntiMafiaState extends State<RulesAntiMafia> {
               secondInformantIndex = randomIndex2;
 
               if (roles[randomIndex] == 'Осведомитель') {
-                amf.updateRole(widget.nameRoom, usersPlay[randomIndex]['name']);
+                amf.updateRole(widget.nameRoom, usersPlay[randomIndex]['name'],
+                    randomIndex);
               }
               if (roles[randomIndex2] == 'Осведомитель') {
-                amf.updateRole(
-                    widget.nameRoom, usersPlay[randomIndex2]['name']);
+                amf.updateRole(widget.nameRoom, usersPlay[randomIndex2]['name'],
+                    randomIndex2);
               }
             } else {
               i--;

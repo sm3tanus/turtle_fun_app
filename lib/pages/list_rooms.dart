@@ -33,7 +33,7 @@ class _ListRoomsState extends State<ListRooms> {
     super.initState();
     _fetchRooms();
   }
-  
+
   Timer? _timer;
   void mainTimer() {
     _timer = Timer.periodic(
@@ -81,7 +81,7 @@ class _ListRoomsState extends State<ListRooms> {
     setState(() {
       rooms = snapshot.docs;
       filter = rooms.where((doc) => doc['name'] != widget.nameRoom).toList();
-      user = rooms.where((doc) => doc['name']== widget.nameRoom).toList();
+      user = rooms.where((doc) => doc['name'] == widget.nameRoom).toList();
     });
   }
 
@@ -230,7 +230,6 @@ class _ListRoomsState extends State<ListRooms> {
                                       selectedItem['name'], widget.nameUser);
                                  
                                   Navigator.push(
-                                    
                                     context,
                                     MaterialPageRoute(
                                       builder: (context) => ChoiseGame(

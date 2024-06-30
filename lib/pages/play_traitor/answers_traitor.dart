@@ -17,16 +17,10 @@ class GameQuestion {
 }
 
 class TraitorGamePage extends StatefulWidget {
-  final List<User> users;
-  final String gameRoomName;
   String nameRoom;
   String nameUser;
 
-  TraitorGamePage(
-      {required this.users,
-      required this.gameRoomName,
-      required this.nameRoom,
-      required this.nameUser});
+  TraitorGamePage({required this.nameRoom, required this.nameUser});
 
   @override
   _TraitorGamePageState createState() => _TraitorGamePageState();
@@ -74,9 +68,7 @@ class _TraitorGamePageState extends State<TraitorGamePage> {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: <Widget>[
-            Text(
-              'Ваша роль: ${widget.users.firstWhere((user) => user.isTraitor).name}',
-            ),
+            Text(''),
             Text(
               gameQuestions[questionIndex].question,
             ),
@@ -84,29 +76,7 @@ class _TraitorGamePageState extends State<TraitorGamePage> {
               children: List.generate(
                 gameQuestions[questionIndex].answers.length,
                 (index) => ElevatedButton(
-                  onPressed: () {
-                    if (widget.users
-                        .firstWhere((user) => user.isTraitor)
-                        .isTraitor) {
-                      // Логика для предателя
-                      if (index == gameQuestions[questionIndex].correctIndex) {
-                        traitorScore++;
-                      }
-                    } else {
-                      // Логика для невиновных игроков
-                      if (index != gameQuestions[questionIndex].correctIndex) {
-                        innocentScore++;
-                      }
-                    }
-                    setState(() {
-                      if (questionIndex < gameQuestions.length - 1) {
-                        questionIndex++;
-                      } else {
-                        // Показать результаты
-                        showResults(context);
-                      }
-                    });
-                  },
+                  onPressed: () {},
                   child: Text(gameQuestions[questionIndex].answers[index]),
                 ),
               ),
@@ -125,7 +95,7 @@ class _TraitorGamePageState extends State<TraitorGamePage> {
       resultText = 'Мирные выиграли $innocentScore:$traitorScore';
     }
     // Обновим результаты игры в базе данных
-    updateGameResults(resultText);
+
     showDialog(
       context: context,
       builder: (BuildContext context) {
@@ -143,12 +113,5 @@ class _TraitorGamePageState extends State<TraitorGamePage> {
         );
       },
     );
-  }
-
-  void updateGameResults(String resultText) async {
-    await FirebaseFirestore.instance
-        .collection('rooms')
-        .doc(widget.gameRoomName)
-        .update({'gameResults': resultText});
   }
 }

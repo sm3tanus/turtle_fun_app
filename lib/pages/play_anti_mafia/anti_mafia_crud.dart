@@ -1,7 +1,7 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 
 class AntiMafiaCrud {
-  Future<void> updateRole(String nameRoom, String nameUser) async {
+  Future<void> updateRole(String nameRoom, String nameUser, int role) async {
     var filter = await FirebaseFirestore.instance
         .collection('rooms')
         .where('name', isEqualTo: nameRoom)
@@ -23,7 +23,7 @@ class AntiMafiaCrud {
         .collection('users')
         .doc(userId);
 
-    await userDocRef.update({'role': 1});
+    await userDocRef.update({'role': role});
   }
 
   Future<void> updateRobberyOnTrue(String nameRoom, String nameUser) async {
@@ -98,8 +98,8 @@ class AntiMafiaCrud {
         .update({'id': id});
   }
 
-  Future<void> updateLeaderInRound(String nameRoom, int roundCount, int id,
-      String nameUser, int membersCount, bool result) async {
+  Future<void> updateGameResults(
+      String nameRoom, String nameUser, bool result, String place) async {
     var filter = await FirebaseFirestore.instance
         .collection('rooms')
         .where('name', isEqualTo: nameRoom)
@@ -112,7 +112,67 @@ class AntiMafiaCrud {
         .collection('rooms')
         .doc(roomId)
         .collection('gameResults')
-        .where('id', isEqualTo: id)
+        .where('name', isEqualTo: nameRoom)
+        .get();
+    var gameId = filter2.docs.first.id;
+    var gameResultsDocRef = FirebaseFirestore.instance
+        .collection('rooms')
+        .doc(roomId)
+        .collection('gameResults')
+        .doc(gameId); // Замените "gameResultsDocId" на фактическое ID документа
+
+    // Обновляем имя лидера в нужной части документа
+    await gameResultsDocRef.set({
+      'name': nameRoom,
+      'leaderName': nameUser,
+      'result': result,
+      'place': place,
+      'Больница': [
+        'Врач',
+        'Медсестра',
+        'Хирург',
+        'Стоматолог',
+        'Санитар',
+        'Физиотерапевт',
+        'Администратор',
+        'Охранник',
+        'Диетолог',
+        'Акушер-гинеколог',
+        // ... другие профессии
+      ],
+      'Стройка': [
+        'Строитель',
+        'Маляр',
+        'Электрик',
+        'Архитектор',
+        'Инженер',
+        'Прораб',
+        'Охранник',
+        'Каменщик',
+        'Бетонщик',
+        'Сантехник',
+        // ... другие профессии
+      ]
+
+      // ... аналогично для остальных мест
+    });
+  }
+
+  Future<void> updatePlaceInGameResults(
+      String nameRoom, String nameUser, bool result, String place) async {
+    var filter = await FirebaseFirestore.instance
+        .collection('rooms')
+        .where('name', isEqualTo: nameRoom)
+        .get();
+
+    var roomId = filter.docs.first.id;
+
+    // Получаем ссылку на документ gameResults
+    var filter2 = await FirebaseFirestore.instance
+        .collection('rooms')
+        .doc(roomId)
+        .collection('gameResults')
+        .where('name', isEqualTo: nameRoom)
         .get();
     var gameId = filter2.docs.first.id;
     var gameResultsDocRef = FirebaseFirestore.instance
@@ -123,12 +183,7 @@ class AntiMafiaCrud {
 
     // Обновляем имя лидера в нужной части документа
     await gameResultsDocRef.update({
-      '$roundCount': {
-        'leaderName': nameUser,
-        'membersCount': membersCount,
-        'result': result
-        // ... другие поля, если нужно
-      }
+      'place': place,
     });
   }
 }
