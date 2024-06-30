@@ -42,6 +42,7 @@ class _RulesAntiMafiaState extends State<RulesAntiMafia> {
   Map<String, dynamic> usersGameResult = {};
   bool isUsersPlayLoaded = false;
   bool isUsersGameResultLoaded = false;
+  bool isRolesCorrect = false;
   DocumentReference? gameResultsDocRef;
   int? liderInRound;
   int randomIDForGameResult = 0;
@@ -90,34 +91,39 @@ class _RulesAntiMafiaState extends State<RulesAntiMafia> {
   }
 
   void _assignRoles() {
-    if (widget.nameUser == leaderName) {
-      if (isUsersPlayLoaded && usersPlay.isNotEmpty) {
-        roles = List.generate(usersPlay.length, (index) => 'Грабитель');
+    if (isUsersPlayLoaded && usersPlay.isNotEmpty && isRolesCorrect == false) {
+      if (usersPlay.every((user) => user['role'] == 0)) {
+        if (usersPlay.any((user) => user['role'] == 1)) {
+          return print('осведомители уже выбраны');
+        } else {
+          roles = List.generate(usersPlay.length, (index) => 'Грабитель');
 
-        final random = Random();
+          final random = Random();
 
-        // Выбираем двух осведомителей (только при первом запуске)
-        for (int i = 0; i < 1; i++) {
-          final randomIndex = random.nextInt(usersPlay.length);
-          final randomIndex2 = random.nextInt(usersPlay.length);
-          if (roles[randomIndex] != 'Осведомитель' &&
-              roles[randomIndex2] != 'Осведомитель' &&
-              randomIndex2 != randomIndex &&
-              usersPlay[randomIndex2]['name'] != widget.nameUser) {
-            roles[randomIndex] = 'Осведомитель';
-            firstInformantIndex = randomIndex;
-            roles[randomIndex2] = 'Осведомитель';
-            secondInformantIndex = randomIndex2;
+          for (int i = 0; i < 1; i++) {
+            final randomIndex = random.nextInt(usersPlay.length);
+            final randomIndex2 = random.nextInt(usersPlay.length);
+            if (roles[randomIndex] != 'Осведомитель' &&
+                roles[randomIndex2] != 'Осведомитель' &&
+                randomIndex2 != randomIndex &&
+                usersPlay[randomIndex2]['name'] != widget.nameUser) {
+              roles[randomIndex] = 'Осведомитель';
+              firstInformantIndex = randomIndex;
+              roles[randomIndex2] = 'Осведомитель';
+              secondInformantIndex = randomIndex2;
 
-            if (roles[randomIndex] == 'Осведомитель') {
-              amf.updateRole(widget.nameRoom, usersPlay[randomIndex]['name']);
+              if (roles[randomIndex] == 'Осведомитель') {
+                amf.updateRole(widget.nameRoom, usersPlay[randomIndex]['name']);
+              }
+              if (roles[randomIndex2] == 'Осведомитель') {
+                amf.updateRole(
+                    widget.nameRoom, usersPlay[randomIndex2]['name']);
+              }
+            } else {
+              i--;
             }
-            if (roles[randomIndex2] == 'Осведомитель') {
-              amf.updateRole(widget.nameRoom, usersPlay[randomIndex2]['name']);
-            }
-          } else {
-            i--;
           }
+          isRolesCorrect = true;
         }
       }
     }

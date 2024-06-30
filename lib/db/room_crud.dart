@@ -19,7 +19,7 @@ class Room {
         .doc(docId)
         .collection('users')
         .doc()
-        .set({'name': leader, 'game': 1, 'role': 0});
+        .set({'name': leader, 'game': 1, 'role': 0, 'robbery': false});
 
     await FirebaseFirestore.instance
         .collection('rooms')

@@ -22,7 +22,7 @@ class _AntiMafiaGamePageState extends State<AntiMafiaGamePage> {
   int firstInformantIndex = 0;
   int secondInformantIndex = 0;
   int leaderInRoundIndex = 0;
-  String? leaderInRound;
+  String leaderInRound = '';
   List<int> robberyTeam = [];
   bool isRobberyStarted = false;
   bool isRobberyFinished = false;
@@ -109,16 +109,11 @@ class _AntiMafiaGamePageState extends State<AntiMafiaGamePage> {
       if (roundCount == 1 || roundCount == 3 || roundCount == 5) {
         usersGameResult['$roundCount']['membersCount'] = membersCount;
         amf.updateLeaderInRound(widget.nameRoom, roundCount,
-            widget.randomIDForGameResult, leaderInRound!, membersCount, result);
+            widget.randomIDForGameResult, leaderInRound, membersCount, result);
       } else {
         usersGameResult['$roundCount']['membersCount'] = membersCount2;
-        amf.updateLeaderInRound(
-            widget.nameRoom,
-            roundCount,
-            widget.randomIDForGameResult,
-            leaderInRound!,
-            membersCount2,
-            result);
+        amf.updateLeaderInRound(widget.nameRoom, roundCount,
+            widget.randomIDForGameResult, leaderInRound, membersCount2, result);
       }
       usersGameResult['$roundCount']['result'] = result;
     }
@@ -285,7 +280,11 @@ class _AntiMafiaGamePageState extends State<AntiMafiaGamePage> {
                             child: Column(
                               children: [
                                 Text(
-                                  'Лидер: $leaderInRound',
+                                  usersGameResult['$roundCount']
+                                              ['leaderName'] ==
+                                          leaderInRound
+                                      ? 'Лидер: ${usersGameResult['$roundCount']['leaderName']}'
+                                      : '',
                                   style: TextStyle(fontWeight: FontWeight.bold),
                                 ),
                                 SizedBox(height: 10),
@@ -316,7 +315,11 @@ class _AntiMafiaGamePageState extends State<AntiMafiaGamePage> {
                                     Padding(
                                       padding: const EdgeInsets.all(16.0),
                                       child: ElevatedButton(
-                                        onPressed: _startRobbery,
+                                        onPressed: () {
+                                          _startRobbery;
+                                          amf.updateRobberyOnTrue(
+                                              widget.nameRoom, widget.nameUser);
+                                        },
                                         child: const Text('Начать ограбление'),
                                       ),
                                     ),
@@ -363,7 +366,7 @@ class _AntiMafiaGamePageState extends State<AntiMafiaGamePage> {
                                 ElevatedButton(
                                   onPressed: () {
                                     result = true;
-                                    roundCountPlus();
+
                                     print(usersGameResult['$roundCount']
                                         ['result']);
                                     setState(() {});
@@ -375,7 +378,7 @@ class _AntiMafiaGamePageState extends State<AntiMafiaGamePage> {
                                 ElevatedButton(
                                   onPressed: () {
                                     result = false;
-                                    roundCountPlus();
+
                                     setState(() {});
                                   },
                                   child: const Text('Провал'),
