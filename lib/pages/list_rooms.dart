@@ -228,9 +228,7 @@ class _ListRoomsState extends State<ListRooms> {
                                 if (widget.nameUser.isNotEmpty) {
                                   await room.addUsersToRoom(
                                       selectedItem['name'], widget.nameUser);
-                                  if (widget.nameRoom.isNotEmpty) {
-                                    await room.deleteRoom(widget.nameRoom);
-                                  }
+                                 
                                   Navigator.push(
                                     
                                     context,

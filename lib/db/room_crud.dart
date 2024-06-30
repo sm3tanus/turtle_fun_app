@@ -5,7 +5,7 @@ class Room {
     await FirebaseFirestore.instance
         .collection('rooms')
         .doc()
-        .set({'leader': leader, 'name': name, 'namePlay' : ""});
+        .set({'leader': leader, 'name': name, 'namePlay': ""});
 
     var filter = await FirebaseFirestore.instance
         .collection('rooms')
@@ -78,31 +78,24 @@ class Room {
     }
   }
 
-  Future<void> deleteRoom(String name) async {
+  Future<void> deleteRoomAnswers(String name) async {
     var querySnapshot = await FirebaseFirestore.instance
         .collection('rooms')
         .where('name', isEqualTo: name)
         .get();
 
     for (var doc in querySnapshot.docs) {
-      await deleteDocumentAndSubcollections(doc.reference);
+      await deleteSubcollection(doc.reference, 'answers');
     }
   }
 
-  Future<void> deleteDocumentAndSubcollections(DocumentReference docRef) async {
-    var usersPlayCollections = await docRef.collection('usersPlay').get();
-    for (var subDoc in usersPlayCollections.docs) {
-      await deleteDocumentAndSubcollections(subDoc.reference);
+  Future<void> deleteSubcollection(
+      DocumentReference docRef, String subcollectionName) async {
+    var subcollectionSnapshot =
+        await docRef.collection(subcollectionName).get();
+    for (var subDoc in subcollectionSnapshot.docs) {
+      await subDoc.reference.delete();
     }
-    var usersCollections = await docRef.collection('users').get();
-    for (var subDoc in usersCollections.docs) {
-      await deleteDocumentAndSubcollections(subDoc.reference);
-    }
-    var answersCollections = await docRef.collection('answers').get();
-    for (var subDoc in answersCollections.docs) {
-      await deleteDocumentAndSubcollections(subDoc.reference);
-    }
-    await docRef.delete();
   }
 
   Future<void> deleteUserInRoom(String nameRoom, String nameUser) async {
@@ -175,7 +168,27 @@ class Room {
         .collection('usersPlay')
         .doc(userId);
 
+    
     await userDocRef.update({'navigate': true});
+  }
+
+  Future<void> setNewGame(String nameRoom) async {
+    var filter = await FirebaseFirestore.instance
+        .collection('rooms')
+        .where('name', isEqualTo: nameRoom)
+        .get();
+
+    var roomId = filter.docs.first.id;
+
+    var usersPlay = await FirebaseFirestore.instance
+        .collection('rooms')
+        .doc(roomId)
+        .collection('usersPlay')
+        .get();
+
+    for (var userDoc in usersPlay.docs) {
+    await userDoc.reference.update({'points': 0});
+  }
   }
 
   Future<void> addNameToRoom(String nameRoom, String namePlay) async {

@@ -167,6 +167,8 @@ class _ChoiseGameState extends State<ChoiseGame> {
                     ),
                     child: InkWell(
                       onTap: () {
+                        Room room = Room();
+
                         Navigator.push(
                           context,
                           MaterialPageRoute(

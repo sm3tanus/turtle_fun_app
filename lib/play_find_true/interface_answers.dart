@@ -208,30 +208,7 @@ class _FindTrueState extends State<FindTrue> {
                   ),
                 ),
               ),
-              Visibility(
-                visible: !enterAnswer,
-                child: SizedBox(
-                  width: MediaQuery.of(context).size.width * 0.6,
-                  height: MediaQuery.of(context).size.height * 0.08,
-                  child: ElevatedButton(
-                    onPressed: () async {
-                      await _setUserReady();
-                      await areAllUsersReady();
-                      startPeriodicTask();
-                      setState(() {
-                        visibilityWait = true;
-                      });
-                    },
-                    child: const Text(
-                      'ДАЛЕЕ',
-                      style: TextStyle(
-                        color: Color(0xff1E5541),
-                        fontSize: 30,
-                      ),
-                    ),
-                  ),
-                ),
-              ),
+              
               SizedBox(
                 height: MediaQuery.of(context).size.width * 0.03,
               ),

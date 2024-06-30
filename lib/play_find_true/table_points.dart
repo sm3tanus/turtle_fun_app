@@ -139,6 +139,8 @@ class _TablePointsState extends State<TablePoints> {
                       onPressed: () {
                         Room room = Room();
                         room.addNameToRoom(widget.nameRoom, "");
+                        room.deleteRoomAnswers(widget.nameRoom);
+                        room.setNewGame(widget.nameRoom);
                         Navigator.push(
                           context,
                           MaterialPageRoute(
@@ -147,6 +149,7 @@ class _TablePointsState extends State<TablePoints> {
                                 nameUser: widget.nameUser),
                           ),
                         );
+
                       },
                       child: const Text(
                         'ВЫЙТИ',
