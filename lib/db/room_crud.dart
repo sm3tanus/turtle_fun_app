@@ -5,7 +5,7 @@ class Room {
     await FirebaseFirestore.instance
         .collection('rooms')
         .doc()
-        .set({'leader': leader, 'name': name});
+        .set({'leader': leader, 'name': name, 'namePlay' : ""});
 
     var filter = await FirebaseFirestore.instance
         .collection('rooms')

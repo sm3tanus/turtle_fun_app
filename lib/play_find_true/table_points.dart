@@ -11,6 +11,7 @@ import 'package:turtle_fun/play_find_true/interface_answers.dart';
 class TablePoints extends StatefulWidget {
   String nameRoom;
   String nameUser;
+
   TablePoints({super.key, required this.nameRoom, required this.nameUser});
 
   @override
@@ -18,14 +19,61 @@ class TablePoints extends StatefulWidget {
 }
 
 class _TablePointsState extends State<TablePoints> {
-  @override
+  Room room = Room();
   void initState() {
     super.initState();
+    room.addNameToRoom(widget.nameRoom, "");
   }
 
+  Timer? _timer;
+  void mainTimer() {
+    _timer = Timer.periodic(
+      Duration(seconds: 2),
+      (Timer t) => checkInRoom(),
+    );
+  }
 
- 
-  
+  Future<void> checkInRoom() async {
+    Room room = Room();
+    if (widget.nameRoom.isNotEmpty && widget.nameUser.isNotEmpty) {
+      if (await room.inRoom(widget.nameRoom, widget.nameUser)) {
+        if (await room.checkRoomsNamePlay(widget.nameRoom) == 1) {
+          if (await room.countUser(widget.nameRoom) != 1) {
+            _timer?.cancel();
+            Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (context) => FindTrue(
+                  nameRoom: widget.nameRoom,
+                  nameUser: widget.nameUser,
+                ),
+              ),
+            );
+          }
+        } else if (await room.checkRoomsNamePlay(widget.nameRoom) == 2) {
+          if (await room.countUser(widget.nameRoom) != 1) {
+            Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (context) => RulesAntiMafia(
+                  nameRoom: widget.nameRoom,
+                  nameUser: widget.nameUser,
+                ),
+              ),
+            );
+          }
+        }
+      }
+    }
+  }
+
+  @override
+  void dispose() {
+    _timer?.cancel();
+
+    super.dispose();
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
