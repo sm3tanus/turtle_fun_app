@@ -1,13 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 
-class User {
-  final String name;
-  final bool isTraitor;
-
-  User(this.name, this.isTraitor);
-}
-
 class GameQuestion {
   final String question;
   final List<String> answers;
@@ -19,99 +12,74 @@ class GameQuestion {
 class TraitorGamePage extends StatefulWidget {
   String nameRoom;
   String nameUser;
-
-  TraitorGamePage({required this.nameRoom, required this.nameUser});
+  Map<String, dynamic> usersGameResult;
+  List<Map<String, dynamic>> usersPlay;
+  TraitorGamePage(
+      {required this.nameRoom,
+      required this.nameUser,
+      required this.usersGameResult,
+      required this.usersPlay});
 
   @override
   _TraitorGamePageState createState() => _TraitorGamePageState();
 }
 
 class _TraitorGamePageState extends State<TraitorGamePage> {
-  int traitorScore = 0;
-  int innocentScore = 0;
-  int questionIndex = 0;
-  List<GameQuestion> gameQuestions = [
-    GameQuestion(
-      "Какого цвета небо?",
-      ["Красное", "Синее", "Зеленое", "Желтое"],
-      1,
-    ),
-    GameQuestion(
-      "Какого цвета небо?",
-      ["Красное", "Синее", "Зеленое", "Желтое"],
-      1,
-    ),
-    GameQuestion(
-      "Какого цвета небо?",
-      ["Красное", "Синее", "Зеленое", "Желтое"],
-      1,
-    ),
-    GameQuestion(
-      "Какого цвета небо?",
-      ["Красное", "Синее", "Зеленое", "Желтое"],
-      1,
-    ),
-    GameQuestion(
-      "Какого цвета небо?",
-      ["Красное", "Синее", "Зеленое", "Желтое"],
-      1,
-    ),
+  int currentUserIndex = 0;
+  String currentRole = '';
+  int currentRoleIndex = 0;
+  @override
+  void initState() {
+    // TODO: implement initState
+    super.initState();
+    _findCurrentUserIndex();
+    _findRole();
+  }
+
+  void _findCurrentUserIndex() {
+    currentUserIndex =
+        widget.usersPlay.indexWhere((user) => user['name'] == widget.nameUser);
+  }
+
+  List<String> place = [
+    'Больница',
+    'Стройка',
   ];
+  void _findRole() {
+    for (String placeName in place) {
+      if (widget.usersGameResult['place'] == placeName) {
+        // Нашли место, теперь ищем роль
+        currentRole = widget.usersGameResult[placeName]
+            [widget.usersPlay[currentUserIndex]['role']];
+
+        return; // Выходим из функции, роль найдена
+      }
+    }
+
+    // Если ни одно место не совпало
+    print('нет такого места');
+  }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Игра "Предатель"'),
-      ),
-      body: Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: <Widget>[
-            Text(''),
-            Text(
-              gameQuestions[questionIndex].question,
-            ),
-            Column(
-              children: List.generate(
-                gameQuestions[questionIndex].answers.length,
-                (index) => ElevatedButton(
-                  onPressed: () {},
-                  child: Text(gameQuestions[questionIndex].answers[index]),
-                ),
+      body: Column(
+        mainAxisAlignment: MainAxisAlignment.start,
+        children: [
+          Text(widget.usersPlay[currentUserIndex]['robbery'] == true
+              ? 'Вы предатель. Не дайте себя обнаружить!!!'
+              : 'Вы мирный житель. Найдите всех шпионов!!! \n Место где вы находитесь - ${widget.usersGameResult['place']} \n Ваша роль - $currentRole'),
+          Column(
+            children: List.generate(
+              widget.usersPlay.length,
+              (index) => ElevatedButton(
+                onPressed: () {},
+                child: Text(widget.usersPlay[index]['name']),
               ),
-            )
-          ],
-        ),
-      ),
-    );
-  }
-
-  void showResults(BuildContext context) {
-    String resultText;
-    if (traitorScore > innocentScore) {
-      resultText = 'Предатель выиграл $traitorScore:$innocentScore';
-    } else {
-      resultText = 'Мирные выиграли $innocentScore:$traitorScore';
-    }
-    // Обновим результаты игры в базе данных
-
-    showDialog(
-      context: context,
-      builder: (BuildContext context) {
-        return AlertDialog(
-          title: const Text('Результаты'),
-          content: Text(resultText),
-          actions: <Widget>[
-            TextButton(
-              onPressed: () {
-                Navigator.of(context).pop();
-              },
-              child: const Text('OK'),
             ),
-          ],
-        );
-      },
+          )
+        ],
+      ),
     );
   }
 }

@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:turtle_fun/db/room_crud.dart';
 import 'package:turtle_fun/pages/choise_game_page.dart';
 import 'package:turtle_fun/pages/play_anti_mafia/rules_anti_mafia.dart';
+import 'package:turtle_fun/pages/play_traitor/rules_traitor.dart';
 import 'package:turtle_fun/play_find_true/interface_answers.dart';
 
 // ignore: must_be_immutable
@@ -45,42 +46,41 @@ class _RulesChoiseTrueState extends State<RulesChoiseTrue> {
     );
   }
 
- Future<void> checkInRoom() async {
-  Room room = Room();
-  if (widget.nameRoom.isNotEmpty && widget.nameUser.isNotEmpty) {
-    if (await room.inRoom(widget.nameRoom, widget.nameUser)) {
-      int roomStatus = await room.checkRoomsNamePlay(widget.nameRoom);
-      int userCount = await room.countUser(widget.nameRoom);
-      if (roomStatus == 1 && userCount != 1) {
-        if (mounted) {
-          _timer?.cancel();
-          Navigator.pushReplacement(
-            context,
-            MaterialPageRoute(
-              builder: (context) => FindTrue(
-                nameRoom: widget.nameRoom,
-                nameUser: widget.nameUser,
+  Future<void> checkInRoom() async {
+    Room room = Room();
+    if (widget.nameRoom.isNotEmpty && widget.nameUser.isNotEmpty) {
+      if (await room.inRoom(widget.nameRoom, widget.nameUser)) {
+        int roomStatus = await room.checkRoomsNamePlay(widget.nameRoom);
+        int userCount = await room.countUser(widget.nameRoom);
+        if (roomStatus == 1 && userCount != 1) {
+          if (mounted) {
+            _timer?.cancel();
+            Navigator.pushReplacement(
+              context,
+              MaterialPageRoute(
+                builder: (context) => FindTrue(
+                  nameRoom: widget.nameRoom,
+                  nameUser: widget.nameUser,
+                ),
               ),
-            ),
-          );
-        }
-      } else if (roomStatus == 2 && userCount != 1) {
-        if (mounted) {
-          Navigator.pushReplacement(
-            context,
-            MaterialPageRoute(
-              builder: (context) => RulesAntiMafia(
-                nameRoom: widget.nameRoom,
-                nameUser: widget.nameUser,
+            );
+          }
+        } else if (roomStatus == 2 && userCount != 1) {
+          if (mounted) {
+            Navigator.pushReplacement(
+              context,
+              MaterialPageRoute(
+                builder: (context) => RulesTraitor(
+                  nameRoom: widget.nameRoom,
+                  nameUser: widget.nameUser,
+                ),
               ),
-            ),
-          );
+            );
+          }
         }
       }
     }
   }
-}
-
 
   @override
   void dispose() {

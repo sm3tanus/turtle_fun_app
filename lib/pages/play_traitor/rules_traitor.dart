@@ -36,14 +36,6 @@ class _RulesTraitorState extends State<RulesTraitor> {
   List<String> place = [
     'Больница',
     'Стройка',
-    'Супермаркет',
-    'Автосалон',
-    'Военная база',
-    'Школа',
-    'Университет',
-    'Корабль',
-    'Военкомат',
-    'Пожарная часть',
   ];
   @override
   void initState() {
@@ -89,7 +81,7 @@ class _RulesTraitorState extends State<RulesTraitor> {
       // Устанавливаем флаг после загрузки
     }
     setState(() {});
-    _findCurrentUserIndex();
+
     Random random = new Random();
 
     if (usersGameResult['place'] == '' && isPlaceCorrect == false) {
@@ -108,33 +100,27 @@ class _RulesTraitorState extends State<RulesTraitor> {
     isUsersPlayLoaded = true;
   }
 
-  void _findCurrentUserIndex() {
-    currentUserIndex =
-        usersPlay.indexWhere((user) => user['name'] == widget.nameUser);
-  }
-
   void _assignRoles() {
-    if (isUsersPlayLoaded && usersPlay.isNotEmpty && isRolesCorrect == false) {
-      if (usersPlay.every((user) => user['role'] == 0)) {
-        if (usersPlay.any((user) => user['role'] != 0)) {
+    if (usersPlay.every((user) => user['robbery'] == false)) {
+      if (usersPlay.isNotEmpty && isRolesCorrect == false) {
+        if (usersPlay.any((user) => user['robbery'] != false)) {
           return print('роли уже выбраны');
         } else {
           final random = Random();
-
-          for (int i = 0; i < 1; i++) {
-            // в рандоме надо usersPlay.length поменять на длину листа профессий.
-            // также надо изначально сделать выборку места
-            // которая будет запоминаться и отображаться у всех одинаково.
+          for (int i = 0; i <= usersPlay.length; i++) {
             final randomIndex = random.nextInt(usersPlay.length);
-            if (usersPlay[currentUserIndex]['role'] == 0) {
-              usersPlay[currentUserIndex]['role'] = randomIndex;
-              amf.updateRole(
-                  widget.nameRoom, usersPlay[randomIndex]['name'], randomIndex);
-            } else {
-              i--;
-            }
+            final randomIndex2 = random.nextInt(10);
+            usersPlay[randomIndex]['robbery'] = true;
+            usersPlay[randomIndex]['role'] == randomIndex2;
+            String randomIndexName = usersPlay[randomIndex]['name'];
+            amf.updateRobberyOnTrue(
+                widget.nameRoom, randomIndexName, randomIndex2);
           }
-          isRolesCorrect = true;
+          if (usersPlay.every((user) => user['roles'] != 0) ||
+              usersPlay.any((user) => user['roles'] == 1) &&
+                  usersPlay.any((user) => user['roles'] != 0)) {
+            isRolesCorrect = true;
+          }
         }
       }
     }
@@ -142,8 +128,8 @@ class _RulesTraitorState extends State<RulesTraitor> {
 
   @override
   Widget build(BuildContext context) {
-    if (!isUsersPlayLoaded && !isPlaceCorrect) {
-      return CircularProgressIndicator.adaptive();
+    if (!isUsersPlayLoaded && !isPlaceCorrect && !isRolesCorrect) {
+      return Center(child: CircularProgressIndicator());
     } else {
       return Scaffold(
         body: SafeArea(
@@ -294,32 +280,17 @@ class _RulesTraitorState extends State<RulesTraitor> {
                       width: MediaQuery.of(context).size.width * 0.4,
                       height: MediaQuery.of(context).size.height * 0.07,
                       child: ElevatedButton(
-                        onPressed: () async {
-                          Room room = Room();
-                          room.addUsersToPlayRoom(
-                              widget.nameRoom, widget.nameUser);
-                          room.setUserNavigateTrue(
-                              widget.nameRoom, widget.nameUser);
-                          if (await room.checkLeaderInRoom(widget.nameRoom)) {
-                            if (await room.navigate(widget.nameRoom) &&
-                                widget.nameRoom.isNotEmpty &&
-                                widget.nameUser.isNotEmpty) {
-                              room.addNameToRoom(widget.nameRoom, "Предатель");
-                              Navigator.push(
-                                context,
-                                MaterialPageRoute(
-                                  builder: (context) => TraitorGamePage(
-                                    nameRoom: widget.nameRoom,
-                                    nameUser: widget.nameUser,
-                                  ),
-                                ),
-                              );
-                            }
-                          } else {
-                            setState(() {
-                              visibility = true;
-                            });
-                          }
+                        onPressed: () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) => TraitorGamePage(
+                                  nameRoom: widget.nameRoom,
+                                  nameUser: widget.nameUser,
+                                  usersGameResult: usersGameResult,
+                                  usersPlay: usersPlay),
+                            ),
+                          );
                         },
                         child: const Text(
                           'ИГРАТЬ',
@@ -331,16 +302,6 @@ class _RulesTraitorState extends State<RulesTraitor> {
                       ),
                     ),
                   ],
-                ),
-                SizedBox(
-                  height: MediaQuery.of(context).size.height * 0.02,
-                ),
-                Visibility(
-                  visible: visibility,
-                  child: const Text(
-                    'Дождитесь лидера комнаты!',
-                    style: TextStyle(color: Colors.red, fontSize: 20),
-                  ),
                 ),
               ],
             ),

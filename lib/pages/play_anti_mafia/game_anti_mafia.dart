@@ -305,8 +305,6 @@ class _AntiMafiaGamePageState extends State<AntiMafiaGamePage> {
                                       child: ElevatedButton(
                                         onPressed: () {
                                           _startRobbery;
-                                          amf.updateRobberyOnTrue(
-                                              widget.nameRoom, widget.nameUser);
                                         },
                                         child: const Text('Начать ограбление'),
                                       ),
