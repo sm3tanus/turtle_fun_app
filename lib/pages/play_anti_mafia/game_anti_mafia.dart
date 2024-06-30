@@ -260,7 +260,7 @@ class _AntiMafiaGamePageState extends State<AntiMafiaGamePage> {
                           padding: const EdgeInsets.all(8.0),
                           child: Center(
                             child: Text(
-                              usersPlay[currentUserIndex]['role'] == '1'
+                              usersPlay[currentUserIndex]['role'] == 1
                                   ? 'Твоя роль (${usersPlay[currentUserIndex]['name']}) - Осведомитель\nНапарник - ${usersPlay[secondInformantIndex]['name']}'
                                   : 'Твоя роль - (${usersPlay[currentUserIndex]['name']})Грабитель',
                               textAlign: TextAlign.center,
@@ -303,7 +303,7 @@ class _AntiMafiaGamePageState extends State<AntiMafiaGamePage> {
                       ),
                       SizedBox(height: 20),
                       Expanded(
-                        child: currentUserIndex == leaderInRoundIndex
+                        child: usersPlay[currentUserIndex]['robbery'] == false
                             // Если игрок лидер, то показываем всех игроков
                             ? Column(
                                 children: [
