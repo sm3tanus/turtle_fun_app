@@ -5,11 +5,11 @@ import 'package:turtle_fun/db/answer_crud.dart';
 import 'package:turtle_fun/play_find_true/game_process.dart';
 import 'package:turtle_fun/play_find_true/interface_all_answers.dart';
 
-// ignore: must_be_immutable
 class FindTrue extends StatefulWidget {
-  String nameRoom;
-  String nameUser;
-  FindTrue({super.key, required this.nameRoom, required this.nameUser});
+  final String nameRoom;
+  final String nameUser;
+
+  const FindTrue({super.key, required this.nameRoom, required this.nameUser});
 
   @override
   State<FindTrue> createState() => _FindTrueState();
@@ -34,11 +34,11 @@ class _FindTrueState extends State<FindTrue> {
     if (facts!.isNotEmpty) {
       question = facts![currentIndex];
     }
-    startPeriodicTask();
   }
 
   void startPeriodicTask() {
     _timer = Timer.periodic(Duration(seconds: 1), (timer) async {
+      await areAllUsersReady();
       if (allUsersReady && mounted) {
         Navigator.pushReplacement(
           context,
@@ -68,20 +68,22 @@ class _FindTrueState extends State<FindTrue> {
         .where('name', isEqualTo: widget.nameRoom)
         .get();
 
-    DocumentReference roomRef = roomSnapshot.docs.first.reference;
+    if (roomSnapshot.docs.isNotEmpty) {
+      DocumentReference roomRef = roomSnapshot.docs.first.reference;
 
-    QuerySnapshot querySnapshot = await roomRef
-        .collection('usersPlay')
-        .where('name', isEqualTo: widget.nameUser)
-        .get();
-
-    if (querySnapshot.docs.isNotEmpty) {
-      String userDocId = querySnapshot.docs.first.id;
-
-      await roomRef
+      QuerySnapshot querySnapshot = await roomRef
           .collection('usersPlay')
-          .doc(userDocId)
-          .update({'ready': true});
+          .where('name', isEqualTo: widget.nameUser)
+          .get();
+
+      if (querySnapshot.docs.isNotEmpty) {
+        String userDocId = querySnapshot.docs.first.id;
+
+        await roomRef
+            .collection('usersPlay')
+            .doc(userDocId)
+            .update({'ready': true});
+      }
     }
   }
 
@@ -91,17 +93,19 @@ class _FindTrueState extends State<FindTrue> {
         .where('name', isEqualTo: widget.nameRoom)
         .get();
 
-    DocumentReference roomRef = roomSnapshot.docs.first.reference;
+    if (roomSnapshot.docs.isNotEmpty) {
+      DocumentReference roomRef = roomSnapshot.docs.first.reference;
 
-    QuerySnapshot querySnapshot = await roomRef
-        .collection('usersPlay')
-        .where('ready', isEqualTo: false)
-        .get();
+      QuerySnapshot querySnapshot = await roomRef
+          .collection('usersPlay')
+          .where('ready', isEqualTo: false)
+          .get();
 
-    if (querySnapshot.docs.isEmpty && mounted) {
-      setState(() {
-        allUsersReady = true;
-      });
+      if (querySnapshot.docs.isEmpty && mounted) {
+        setState(() {
+          allUsersReady = true;
+        });
+      }
     }
   }
 
@@ -118,8 +122,8 @@ class _FindTrueState extends State<FindTrue> {
                 child: Text(
                   question ?? '',
                   textAlign: TextAlign.center,
-                  style: const TextStyle(
-                      color: Color(0xffA1C096), fontSize: 24),
+                  style:
+                      const TextStyle(color: Color(0xffA1C096), fontSize: 24),
                 ),
               ),
               SizedBox(
@@ -170,31 +174,22 @@ class _FindTrueState extends State<FindTrue> {
                   child: ElevatedButton(
                     onPressed: () async {
                       Answer answer = Answer();
-                      if (currentIndex < 7) {
-                        if (_answer.text.isNotEmpty) {
-                          await answer.addAnswerToRoom(
-                              widget.nameRoom,
-                              widget.nameUser,
-                              _answer.text,
-                              currentIndex);
-                          _answer.clear();
-                          setState(() {
-                            currentIndex++;
-                            question = facts![currentIndex];
-                            visibility = false;
-                          });
-                        } else {
-                          setState(() {
-                            visibility = true;
-                          });
-                        }
-                      } else if (currentIndex == 7) {
-                        await _setUserReady();
-                        await areAllUsersReady();
-                        startPeriodicTask();
+                      if (_answer.text.isNotEmpty) {
+                        await answer.addAnswerToRoom(widget.nameRoom,
+                            widget.nameUser, _answer.text, currentIndex);
+                        _answer.clear();
                         setState(() {
-                          enterAnswer = false;
-                          visibilityWait = true;
+                          currentIndex++;
+                          if (currentIndex < facts!.length) {
+                            question = facts![currentIndex];
+                          } else {
+                            enterAnswer = false;
+                          }
+                          visibility = false;
+                        });
+                      } else {
+                        setState(() {
+                          visibility = true;
                         });
                       }
                     },
@@ -208,7 +203,29 @@ class _FindTrueState extends State<FindTrue> {
                   ),
                 ),
               ),
-              
+              Visibility(
+                visible: !enterAnswer,
+                child: SizedBox(
+                  width: MediaQuery.of(context).size.width * 0.6,
+                  height: MediaQuery.of(context).size.height * 0.08,
+                  child: ElevatedButton(
+                    onPressed: () async {
+                      await _setUserReady();
+                      startPeriodicTask();
+                      setState(() {
+                        visibilityWait = true;
+                      });
+                    },
+                    child: const Text(
+                      'ДАЛЕЕ',
+                      style: TextStyle(
+                        color: Color(0xff1E5541),
+                        fontSize: 30,
+                      ),
+                    ),
+                  ),
+                ),
+              ),
               SizedBox(
                 height: MediaQuery.of(context).size.width * 0.03,
               ),

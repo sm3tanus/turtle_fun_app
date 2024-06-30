@@ -45,39 +45,42 @@ class _RulesChoiseTrueState extends State<RulesChoiseTrue> {
     );
   }
 
-  Future<void> checkInRoom() async {
-    Room room = Room();
-    if (widget.nameRoom.isNotEmpty && widget.nameUser.isNotEmpty) {
-      if (await room.inRoom(widget.nameRoom, widget.nameUser)) {
-        if (await room.checkRoomsNamePlay(widget.nameRoom) == 1) {
-          if (await room.countUser(widget.nameRoom) != 1) {
-            _timer?.cancel();
-            Navigator.push(
-              context,
-              MaterialPageRoute(
-                builder: (context) => FindTrue(
-                  nameRoom: widget.nameRoom,
-                  nameUser: widget.nameUser,
-                ),
+ Future<void> checkInRoom() async {
+  Room room = Room();
+  if (widget.nameRoom.isNotEmpty && widget.nameUser.isNotEmpty) {
+    if (await room.inRoom(widget.nameRoom, widget.nameUser)) {
+      int roomStatus = await room.checkRoomsNamePlay(widget.nameRoom);
+      int userCount = await room.countUser(widget.nameRoom);
+      if (roomStatus == 1 && userCount != 1) {
+        if (mounted) {
+          _timer?.cancel();
+          Navigator.pushReplacement(
+            context,
+            MaterialPageRoute(
+              builder: (context) => FindTrue(
+                nameRoom: widget.nameRoom,
+                nameUser: widget.nameUser,
               ),
-            );
-          }
-        } else if (await room.checkRoomsNamePlay(widget.nameRoom) == 2) {
-          if (await room.countUser(widget.nameRoom) != 1) {
-            Navigator.push(
-              context,
-              MaterialPageRoute(
-                builder: (context) => RulesAntiMafia(
-                  nameRoom: widget.nameRoom,
-                  nameUser: widget.nameUser,
-                ),
+            ),
+          );
+        }
+      } else if (roomStatus == 2 && userCount != 1) {
+        if (mounted) {
+          Navigator.pushReplacement(
+            context,
+            MaterialPageRoute(
+              builder: (context) => RulesAntiMafia(
+                nameRoom: widget.nameRoom,
+                nameUser: widget.nameUser,
               ),
-            );
-          }
+            ),
+          );
         }
       }
     }
   }
+}
+
 
   @override
   void dispose() {

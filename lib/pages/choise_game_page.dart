@@ -4,10 +4,8 @@ import 'package:flutter/material.dart';
 import 'package:turtle_fun/db/room_crud.dart';
 import 'package:turtle_fun/pages/list_rooms.dart';
 import 'package:turtle_fun/pages/main_page.dart';
-import 'package:turtle_fun/pages/play_anti_mafia/game_anti_mafia.dart';
 import 'package:turtle_fun/pages/play_anti_mafia/rules_anti_mafia.dart';
 import 'package:turtle_fun/pages/play_anti_mafia/vote_anti_mafia.dart';
-import 'package:turtle_fun/pages/play_traitor/rules_traitor.dart';
 import 'package:turtle_fun/play_find_true/interface_answers.dart';
 import 'package:turtle_fun/play_find_true/rules_choise_true_page.dart';
 
@@ -53,10 +51,12 @@ class _ChoiseGameState extends State<ChoiseGame> {
     Room room = Room();
     if (widget.nameRoom.isNotEmpty && widget.nameUser.isNotEmpty) {
       if (await room.inRoom(widget.nameRoom, widget.nameUser)) {
-        if (await room.checkRoomsNamePlay(widget.nameRoom) == 1) {
-          if (await room.countUser(widget.nameRoom) != 1) {
+        int roomStatus = await room.checkRoomsNamePlay(widget.nameRoom);
+        int userCount = await room.countUser(widget.nameRoom);
+        if (roomStatus == 1 && userCount != 1) {
+          if (mounted) {
             _timer?.cancel();
-            Navigator.push(
+            Navigator.pushReplacement(
               context,
               MaterialPageRoute(
                 builder: (context) => FindTrue(
@@ -66,9 +66,9 @@ class _ChoiseGameState extends State<ChoiseGame> {
               ),
             );
           }
-        } else if (await room.checkRoomsNamePlay(widget.nameRoom) == 2) {
-          if (await room.countUser(widget.nameRoom) != 1) {
-            Navigator.push(
+        } else if (roomStatus == 2 && userCount != 1) {
+          if (mounted) {
+            Navigator.pushReplacement(
               context,
               MaterialPageRoute(
                 builder: (context) => RulesAntiMafia(
@@ -298,90 +298,6 @@ class _ChoiseGameState extends State<ChoiseGame> {
                     ),
                   ),
                   SizedBox(height: MediaQuery.of(context).size.height * 0.02),
-                  Visibility(
-                    visible: inRoom,
-                    child: SizedBox(
-                      width: MediaQuery.of(context).size.width * 0.9,
-                      height: MediaQuery.of(context).size.height * 0.15,
-                      child: ElevatedButton(
-                        onPressed: () async {
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              builder: (context) => RulesAntiMafia(
-                                nameRoom: widget.nameRoom,
-                                nameUser: widget.nameUser,
-                              ),
-                            ),
-                          );
-                        },
-                        child: Row(
-                          children: [
-                            Image.asset(
-                              'assets/antimafia.png',
-                              width: MediaQuery.of(context).size.width * 0.2,
-                            ),
-                            SizedBox(
-                              width: MediaQuery.of(context).size.width * 0.05,
-                            ),
-                            const Text(
-                              'АНТИМАФИЯ',
-                              style: TextStyle(
-                                color: Color(0xff1E5541),
-                                fontSize: 27,
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                    ),
-                  ),
-                  SizedBox(height: MediaQuery.of(context).size.height * 0.02),
-                  // Visibility(
-                  //   visible: !inRoom,
-                  //   child: Container(
-                  //     width: MediaQuery.of(context).size.width * 0.9,
-                  //     height: 70,
-                  //     decoration: BoxDecoration(
-                  //       color: Color(0xffA1C096),
-                  //       borderRadius: BorderRadius.circular(25.0),
-                  //     ),
-                  //     child: InkWell(
-                  //       onTap: () {
-                  //         Navigator.push(
-                  //           context,
-                  //           MaterialPageRoute(
-                  //             builder: (context) => MainPage(
-                  //               nameRoom: widget.nameRoom,
-                  //               nameUser: widget.nameUser,
-                  //             ),
-                  //           ),
-                  //         );
-                  //       },
-                  //       // child: const Padding(
-                  //       //   padding: EdgeInsets.symmetric(horizontal: 16.0),
-                  //       //   child: Row(
-                  //       //     mainAxisAlignment: MainAxisAlignment.center,
-                  //       //     children: [
-                  //       //       SizedBox(
-                  //       //         width: 10,
-                  //       //       ),
-                  //       //       Text(
-                  //       //         'Создать комнату',
-                  //       //         style: TextStyle(
-                  //       //           color: Color(0xff1E5541),
-                  //       //           fontSize: 20,
-                  //       //           fontWeight: FontWeight.w600,
-                  //       //         ),
-                  //       //         softWrap: true,
-                  //       //       ),
-                  //       //     ],
-                  //       //   ),
-                  //       // ),
-                  //     ),
-                  //   ),
-                  // ),
-
                   Visibility(
                     visible: !inRoom,
                     child: SizedBox(

@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:math';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:turtle_fun/db/answer_crud.dart';
@@ -37,6 +38,8 @@ class _AllAnswersState extends State<AllAnswers> {
   int? selectedAnswerIndex;
   int countdown = 20;
   bool onPress = false;
+  int? correctAnswerIndex; // Переменная для хранения случайного индекса
+  List<Map<String, dynamic>>? answersList; // Список ответов
 
   @override
   void initState() {
@@ -123,9 +126,23 @@ class _AllAnswersState extends State<AllAnswers> {
           .get();
 
       setState(() {
+        answersList = answersSnapshot.docs.map((doc) {
+          return doc.data() as Map<String, dynamic>;
+        }).toList();
+
+        // Генерируем случайный индекс для правильного ответа только один раз
+        correctAnswerIndex = Random().nextInt(answersList!.length + 1);
+
+        // Вставляем правильный ответ в случайный индекс
+        answersList!.insert(correctAnswerIndex!, {
+          'answer': trueAnswers[widget.currentIndex].toString(),
+          'name': 'correctAnswer',
+        });
+
         answers = Future.value(answersSnapshot);
         showCorrectAnswer = false;
         selectedAnswerIndex = null;
+        onPress = false;
       });
     }
   }
@@ -160,26 +177,14 @@ class _AllAnswersState extends State<AllAnswers> {
                   if (snapshot.connectionState == ConnectionState.waiting) {
                     return const Center(child: CircularProgressIndicator());
                   } else if (snapshot.hasError) {
-                    return Center(child: Text('Error: ${snapshot.error}'));
+                    return Center(child: Text('Ошибка: ${snapshot.error}'));
                   } else if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
-                    return const Center(child: Text('No answers found'));
+                    return const Center(child: Text('Ответы не найдены'));
                   } else {
-                    var answersSnapshot = snapshot.data!.docs;
-
-                    List<Map<String, dynamic>> answersList =
-                        answersSnapshot.map((doc) {
-                      return doc.data() as Map<String, dynamic>;
-                    }).toList();
-
-                    answersList.add({
-                      'answer': trueAnswers[widget.currentIndex].toString(),
-                      'name': 'correctAnswer',
-                    });
-
                     return ListView.builder(
-                      itemCount: answersList.length,
+                      itemCount: answersList!.length,
                       itemBuilder: (context, index) {
-                        var answer = answersList[index];
+                        var answer = answersList![index];
                         bool isCorrectAnswer =
                             answer['name'] == 'correctAnswer';
                         return Padding(
@@ -218,7 +223,7 @@ class _AllAnswersState extends State<AllAnswers> {
                                   }
                                 },
                                 child: Text(
-                                  answer['answer'] ?? 'No text',
+                                  answer['answer'] ?? 'Нет текста',
                                   style: const TextStyle(
                                       color: Color(0xffA1FF80), fontSize: 20),
                                 ),

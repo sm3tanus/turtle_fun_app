@@ -29,7 +29,7 @@ class _EnterNameState extends State<EnterName> {
             child: Column(
               children: [
                 SizedBox(
-                  width: MediaQuery.of(context).size.width * 0.9,
+                  width: MediaQuery.of(context).size.width * 0.7,
                   child: Row(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
@@ -37,9 +37,10 @@ class _EnterNameState extends State<EnterName> {
                         child: Text(
                           'Turtle Fun',
                           textAlign: TextAlign.right,
+                          softWrap: true,
                           style: TextStyle(
                               color: Color.fromARGB(255, 181, 255, 179),
-                              fontSize: 44,
+                              fontSize: 40,
                               fontWeight: FontWeight.bold),
                         ),
                       ),

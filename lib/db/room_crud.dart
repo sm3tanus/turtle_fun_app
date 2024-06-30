@@ -24,6 +24,13 @@ class Room {
     await FirebaseFirestore.instance
         .collection('rooms')
         .doc(docId)
+        .collection('usersPlay')
+        .doc()
+        .set({'name': leader, 'navigate': false, 'ready': false});
+
+    await FirebaseFirestore.instance
+        .collection('rooms')
+        .doc(docId)
         .collection('gameResults')
         .doc()
         .set({
@@ -168,7 +175,6 @@ class Room {
         .collection('usersPlay')
         .doc(userId);
 
-    
     await userDocRef.update({'navigate': true});
   }
 
@@ -187,8 +193,8 @@ class Room {
         .get();
 
     for (var userDoc in usersPlay.docs) {
-    await userDoc.reference.update({'points': 0});
-  }
+      await userDoc.reference.update({'points': 0});
+    }
   }
 
   Future<void> addNameToRoom(String nameRoom, String namePlay) async {

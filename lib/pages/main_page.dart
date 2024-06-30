@@ -30,7 +30,7 @@ class _MainPageState extends State<MainPage> {
             child: Column(
               children: [
                 SizedBox(
-                  width: MediaQuery.of(context).size.width * 0.6,
+                  width: MediaQuery.of(context).size.width * 0.7,
                   child: Row(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
@@ -38,10 +38,12 @@ class _MainPageState extends State<MainPage> {
                         child: Text(
                           'Turtle Fun',
                           textAlign: TextAlign.right,
+                          softWrap: true,
                           style: TextStyle(
                               color: Color.fromARGB(255, 181, 255, 179),
-                              fontSize: 44,
-                              fontWeight: FontWeight.bold),
+                              fontSize: 40,
+                              fontWeight: FontWeight.bold,
+                              ),
                         ),
                       ),
                       Image.asset(
