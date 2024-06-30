@@ -171,40 +171,65 @@ class _TraitorGamePageState extends State<TraitorGamePage> {
                 Padding(
                   padding: const EdgeInsets.all(16.0),
                   child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        'Список мест:',
-                        style: TextStyle(
-                          fontSize: 18,
-                          fontWeight: FontWeight.bold,
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          'Список мест:',
+                          style: TextStyle(
+                            fontSize: 18,
+                            fontWeight: FontWeight.bold,
+                          ),
                         ),
-                      ),
-                      SizedBox(height: 10),
-                      Expanded(
-                        child: ListView.builder(
-                          itemCount: place.length,
-                          itemBuilder: (context, index) {
-                            return ListTile(
-                              title: Text(
-                                place[index],
-                                style: TextStyle(fontSize: 16),
-                              ),
-                              onTap: () {
-                                // Сохраняем выбранное место
-                                setState(() {
-                                  _selectedPlace = place[index];
-                                  _showPlaceList = false;
-                                });
-                                // Обновляем базу данных и проверяем победу
-                                _updatePlaceAndCheckWin();
-                              },
-                            );
-                          },
-                        ),
-                      ),
-                    ],
-                  ),
+                        SizedBox(height: 10),
+                        Expanded(
+                          flex: 1,
+                          child: Column(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              // ... ваш контент
+                              if (_showPlaceList)
+                                Padding(
+                                  padding: const EdgeInsets.all(16.0),
+                                  child: Column(
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
+                                    children: [
+                                      Text(
+                                        'Список мест:',
+                                        style: TextStyle(
+                                          fontSize: 18,
+                                          fontWeight: FontWeight.bold,
+                                        ),
+                                      ),
+                                      SizedBox(height: 10),
+                                      // Используйте Flexible вместо Expanded в ListView.builder
+                                      Flexible(
+                                        child: ListView.builder(
+                                          itemCount: place.length,
+                                          itemBuilder: (context, index) {
+                                            return ListTile(
+                                              title: Text(
+                                                place[index],
+                                                style: TextStyle(fontSize: 16),
+                                              ),
+                                              onTap: () {
+                                                setState(() {
+                                                  _selectedPlace = place[index];
+                                                  _showPlaceList = false;
+                                                });
+                                                _updatePlaceAndCheckWin();
+                                              },
+                                            );
+                                          },
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                            ],
+                          ),
+                        )
+                      ]),
                 ),
             ],
           ),
