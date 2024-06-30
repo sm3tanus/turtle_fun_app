@@ -107,15 +107,30 @@ class _RulesTraitorState extends State<RulesTraitor> {
           return print('роли уже выбраны');
         } else {
           final random = Random();
-          for (int i = 0; i <= usersPlay.length; i++) {
-            final randomIndex = random.nextInt(usersPlay.length);
-            final randomIndex2 = random.nextInt(10);
-            usersPlay[randomIndex]['robbery'] = true;
-            usersPlay[randomIndex]['role'] == randomIndex2;
-            String randomIndexName = usersPlay[randomIndex]['name'];
-            amf.updateRobberyOnTrue(
-                widget.nameRoom, randomIndexName, randomIndex2);
+
+          // Присваиваем 'robbery' случайным пользователям (меньше половины)
+          int robberyCount = (usersPlay.length / 2).floor(); // Округляем вниз
+          for (int i = 0; i < robberyCount; i++) {
+            int randomIndex = random.nextInt(usersPlay.length);
+            if (usersPlay[randomIndex]['robbery'] == false) {
+              // Проверяем, уже ли присвоено
+              usersPlay[randomIndex]['robbery'] = true;
+              String randomIndexName = usersPlay[randomIndex]['name'];
+              amf.updateRobberyOnTrue(widget.nameRoom, randomIndexName);
+            } else {
+              i--; // Если уже присвоено, пропустить итерацию
+            }
           }
+
+          // Присваиваем роли всем пользователям
+          for (int i = 0; i < usersPlay.length; i++) {
+            int randomIndex2 = random.nextInt(10);
+            usersPlay[i]['role'] = randomIndex2;
+            // Используем имя пользователя из цикла
+            amf.updateRole(widget.nameRoom, usersPlay[i]['name'], randomIndex2);
+          }
+
+          // Проверка на корректность ролей
           if (usersPlay.every((user) => user['roles'] != 0) ||
               usersPlay.any((user) => user['roles'] == 1) &&
                   usersPlay.any((user) => user['roles'] != 0)) {

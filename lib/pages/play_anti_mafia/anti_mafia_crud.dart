@@ -26,8 +26,7 @@ class AntiMafiaCrud {
     await userDocRef.update({'role': role});
   }
 
-  Future<void> updateRobberyOnTrue(
-      String nameRoom, String nameUser, int role) async {
+  Future<void> updateRobberyOnTrue(String nameRoom, String nameUser) async {
     var filter = await FirebaseFirestore.instance
         .collection('rooms')
         .where('name', isEqualTo: nameRoom)
@@ -49,7 +48,7 @@ class AntiMafiaCrud {
         .collection('users')
         .doc(userId);
 
-    await userDocRef.update({'robbery': true, 'role': role});
+    await userDocRef.update({'robbery': true});
   }
 
   Future<void> updateRobberyOnFalse(String nameRoom, String nameUser) async {
