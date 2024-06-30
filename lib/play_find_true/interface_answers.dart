@@ -1,5 +1,4 @@
 import 'dart:async';
-
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:turtle_fun/db/answer_crud.dart';
@@ -24,7 +23,6 @@ class _FindTrueState extends State<FindTrue> {
   TextEditingController _answer = TextEditingController();
   bool visibility = false;
   bool allUsersReady = false;
-  int i = 0;
   bool enterAnswer = true;
   bool visibilityWait = false;
   Timer? _timer;
@@ -33,15 +31,16 @@ class _FindTrueState extends State<FindTrue> {
   void initState() {
     super.initState();
     facts = processFind.facts_without_answers.toList();
-    if (facts!.isNotEmpty && currentIndex == 0) {
+    if (facts!.isNotEmpty) {
       question = facts![currentIndex];
     }
+    startPeriodicTask();
   }
 
   void startPeriodicTask() {
-    _timer = Timer.periodic(Duration(seconds: 1), (timer) {
-      if (allUsersReady) {
-        Navigator.push(
+    _timer = Timer.periodic(Duration(seconds: 1), (timer) async {
+      if (allUsersReady && mounted) {
+        Navigator.pushReplacement(
           context,
           MaterialPageRoute(
             builder: (context) => AllAnswers(
@@ -59,6 +58,7 @@ class _FindTrueState extends State<FindTrue> {
   @override
   void dispose() {
     _timer?.cancel();
+    _answer.dispose();
     super.dispose();
   }
 
@@ -85,7 +85,7 @@ class _FindTrueState extends State<FindTrue> {
     }
   }
 
-  Future areAllUsersReady() async {
+  Future<void> areAllUsersReady() async {
     QuerySnapshot roomSnapshot = await FirebaseFirestore.instance
         .collection('rooms')
         .where('name', isEqualTo: widget.nameRoom)
@@ -98,7 +98,7 @@ class _FindTrueState extends State<FindTrue> {
         .where('ready', isEqualTo: false)
         .get();
 
-    if (querySnapshot.docs.isEmpty) {
+    if (querySnapshot.docs.isEmpty && mounted) {
       setState(() {
         allUsersReady = true;
       });
@@ -118,8 +118,8 @@ class _FindTrueState extends State<FindTrue> {
                 child: Text(
                   question ?? '',
                   textAlign: TextAlign.center,
-                  style:
-                      const TextStyle(color: Color(0xffA1C096), fontSize: 24),
+                  style: const TextStyle(
+                      color: Color(0xffA1C096), fontSize: 24),
                 ),
               ),
               SizedBox(
@@ -168,43 +168,34 @@ class _FindTrueState extends State<FindTrue> {
                   width: MediaQuery.of(context).size.width * 0.6,
                   height: MediaQuery.of(context).size.height * 0.08,
                   child: ElevatedButton(
-                    onPressed: () {
+                    onPressed: () async {
                       Answer answer = Answer();
-                      // if (i <= facts!.length - 1) {
-                      //   i++;
-                      //   if (_answer.text.isNotEmpty) {
-                      //     setState(() {
-                      //       visibility = false;
-                      //     });
-                      //     answer.addAnswerToRoom(widget.nameRoom,
-                      //         widget.nameUser, _answer.text, currentIndex);
-                      //     _answer.clear();
-
-                      //     if (currentIndex != 7) {
-                      //       setState(() {
-                      //         currentIndex++;
-                      //       });
-                      //       question = facts![currentIndex];
-                      //     }
-                      //   } else {
-                      //     setState(() {
-                      //       visibility = true;
-                      //     });
-                      //   }
-                      // } else {
-                      //   _answer.clear();
-                      //   setState(() {
-                      //     visibilityWait = true;
-                      //   });
-                      //   startPeriodicTask();
-                      //   setState(() {
-                      //     enterAnswer = false;
-                      //   });
-                      //   _setUserReady();
-                      //   areAllUsersReady();
-                      // }
-                      if (currentIndex <= 7){
-                        
+                      if (currentIndex < 7) {
+                        if (_answer.text.isNotEmpty) {
+                          await answer.addAnswerToRoom(
+                              widget.nameRoom,
+                              widget.nameUser,
+                              _answer.text,
+                              currentIndex);
+                          _answer.clear();
+                          setState(() {
+                            currentIndex++;
+                            question = facts![currentIndex];
+                            visibility = false;
+                          });
+                        } else {
+                          setState(() {
+                            visibility = true;
+                          });
+                        }
+                      } else if (currentIndex == 7) {
+                        await _setUserReady();
+                        await areAllUsersReady();
+                        startPeriodicTask();
+                        setState(() {
+                          enterAnswer = false;
+                          visibilityWait = true;
+                        });
                       }
                     },
                     child: const Text(
@@ -217,34 +208,7 @@ class _FindTrueState extends State<FindTrue> {
                   ),
                 ),
               ),
-              Visibility(
-                visible: !enterAnswer,
-                child: SizedBox(
-                  width: MediaQuery.of(context).size.width * 0.6,
-                  height: MediaQuery.of(context).size.height * 0.08,
-                  child: ElevatedButton(
-                    onPressed: () {
-                      _answer.clear();
-                      setState(() {
-                        visibilityWait = true;
-                      });
-                      setState(() {
-                        enterAnswer = false;
-                      });
-                      _setUserReady();
-                      areAllUsersReady();
-                      startPeriodicTask();
-                    },
-                    child: const Text(
-                      'ДАЛЕЕ',
-                      style: TextStyle(
-                        color: Color(0xff1E5541),
-                        fontSize: 30,
-                      ),
-                    ),
-                  ),
-                ),
-              ),
+              
               SizedBox(
                 height: MediaQuery.of(context).size.width * 0.03,
               ),

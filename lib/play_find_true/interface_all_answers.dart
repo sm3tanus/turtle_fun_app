@@ -45,7 +45,7 @@ class _AllAnswersState extends State<AllAnswers> {
     facts = processFind.facts_without_answers.toList();
     if (facts!.isNotEmpty) {
       question = facts![widget.currentIndex];
-
+      findAnswers();
     }
     startTimer();
     startCountdown();
@@ -69,7 +69,7 @@ class _AllAnswersState extends State<AllAnswers> {
           widget.currentIndex = widget.currentIndex + 1;
         });
 
-        Navigator.push(
+        Navigator.pushReplacement(
           context,
           MaterialPageRoute(
             builder: (context) => AllAnswers(
@@ -80,7 +80,7 @@ class _AllAnswersState extends State<AllAnswers> {
           ),
         );
       } else {
-        Navigator.push(
+        Navigator.pushReplacement(
           context,
           MaterialPageRoute(
             builder: (context) => TablePoints(
@@ -107,8 +107,30 @@ class _AllAnswersState extends State<AllAnswers> {
     });
   }
 
+  Future<void> findAnswers() async {
+    var filter = await FirebaseFirestore.instance
+        .collection('rooms')
+        .where('name', isEqualTo: widget.nameRoom)
+        .get();
 
- @override
+    if (filter.docs.isNotEmpty) {
+      var docId = filter.docs.first.id;
+      var answersSnapshot = await FirebaseFirestore.instance
+          .collection('rooms')
+          .doc(docId)
+          .collection('answers')
+          .where('index', isEqualTo: widget.currentIndex)
+          .get();
+
+      setState(() {
+        answers = Future.value(answersSnapshot);
+        showCorrectAnswer = false;
+        selectedAnswerIndex = null;
+      });
+    }
+  }
+
+  @override
   void dispose() {
     _timer?.cancel();
     _timerPage?.cancel();
@@ -219,13 +241,13 @@ class _AllAnswersState extends State<AllAnswers> {
               ),
             ),
           ),
-           Visibility(
+          Visibility(
             visible: onPress,
-             child: Text(
+            child: Text(
               'Ваш голос учтен.',
               style: const TextStyle(color: Color(0xffA1C096), fontSize: 20),
-                       ),
-           ),
+            ),
+          ),
           Text(
             '$countdown секунд',
             style: const TextStyle(color: Color(0xffA1C096), fontSize: 20),

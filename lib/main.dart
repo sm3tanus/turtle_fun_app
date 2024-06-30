@@ -49,31 +49,5 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
   }
 
 
-  @override
-  void initState() {
-    super.initState();
-    WidgetsBinding.instance.addObserver(this);
-  }
-
-  @override
-  void dispose() {
-    WidgetsBinding.instance.removeObserver(this);
-    super.dispose();
-  }
-
-  @override
-  void didChangeAppLifecycleState(AppLifecycleState state) {
-    if (state == AppLifecycleState.detached) {
-      // Код, который выполнится при закрытии приложения
-      onAppClose();
-    }
-  }
-
-  Future<void> onAppClose() async {
-    // Ваш код для выполнения при закрытии приложения
-    print("Приложение закрывается");
-    // Пример: Удаление комнаты
-    await room.deleteRoom('Room to delete on close');
-  }
-
+ 
 }
