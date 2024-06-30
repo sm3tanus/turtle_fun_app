@@ -26,14 +26,7 @@ class Room {
         .doc(docId)
         .collection('gameResults')
         .doc()
-        .set({
-      '1': {'result': false, 'membersCount': 3, 'leaderName': ''},
-      '2': {'result': false, 'membersCount': 2, 'leaderName': ''},
-      '3': {'result': false, 'membersCount': 3, 'leaderName': ''},
-      '4': {'result': false, 'membersCount': 2, 'leaderName': ''},
-      '5': {'result': false, 'membersCount': 3, 'leaderName': ''},
-      'id': 0
-    });
+        .set({'name': name, 'place': ''});
   }
 
   Future<void> addUsersToRoom(String name, String nameUser) async {

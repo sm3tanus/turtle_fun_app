@@ -403,7 +403,7 @@ class _ChoiseGameState extends State<ChoiseGame> {
                           Navigator.push(
                             context,
                             MaterialPageRoute(
-                              builder: (context) => VoteAntiMafia(
+                              builder: (context) => RulesTraitor(
                                 nameRoom: widget.nameRoom,
                                 nameUser: widget.nameUser,
                               ),

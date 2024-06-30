@@ -97,8 +97,7 @@ class _AntiMafiaGamePageState extends State<AntiMafiaGamePage> {
   // мы будем делать его нулом только после завершения раунда
   void _chooseLeader() {
     final random = Random();
-    amf.updateLeaderInRound(widget.nameRoom, roundCount,
-        widget.randomIDForGameResult, widget.nameUser, membersCount, result);
+
     if (leaderInRound == null &&
         usersGameResult['$roundCount']['leaderName'] == '') {
       leaderInRoundIndex = random.nextInt(usersPlay.length);
@@ -108,12 +107,8 @@ class _AntiMafiaGamePageState extends State<AntiMafiaGamePage> {
       print('лидер в раунде: $leaderInRound');
       if (roundCount == 1 || roundCount == 3 || roundCount == 5) {
         usersGameResult['$roundCount']['membersCount'] = membersCount;
-        amf.updateLeaderInRound(widget.nameRoom, roundCount,
-            widget.randomIDForGameResult, leaderInRound, membersCount, result);
       } else {
         usersGameResult['$roundCount']['membersCount'] = membersCount2;
-        amf.updateLeaderInRound(widget.nameRoom, roundCount,
-            widget.randomIDForGameResult, leaderInRound, membersCount2, result);
       }
       usersGameResult['$roundCount']['result'] = result;
     }
@@ -126,24 +121,17 @@ class _AntiMafiaGamePageState extends State<AntiMafiaGamePage> {
 
   void _findSecondInformant() {
     if (usersPlay.isNotEmpty) {
-      // Находим первого осведомителя
       int firstInformantIndex =
           usersPlay.indexWhere((user) => user['role'] == 1);
 
-      // Если первый осведомитель найден
       if (firstInformantIndex != -1) {
-        // Находим второго осведомителя, не равного текущему пользователю
         int secondInformantIndex;
         do {
           secondInformantIndex = Random().nextInt(usersPlay.length);
         } while (secondInformantIndex == firstInformantIndex ||
-            usersPlay[secondInformantIndex]['name'] ==
-                widget
-                    .nameUser); // Изменил условие для проверки имени пользователя
+            usersPlay[secondInformantIndex]['name'] == widget.nameUser);
 
-        // Если второй осведомитель найден
         if (secondInformantIndex != -1) {
-          // Делаем что-то с информацией о втором осведомителе
           print(
               "Второй осведомитель: ${usersPlay[secondInformantIndex]['name']}");
         }
@@ -170,27 +158,27 @@ class _AntiMafiaGamePageState extends State<AntiMafiaGamePage> {
     });
   }
 
-  // void _onRobberyResult(bool success) {
-  //   if (!isRobberyFinished) {
-  //     if (usersPlay.every((user) =>
-  //         (usersPlay.every['role'] == 'Осведомитель' && !success) ||
-  //         (usersPlay[usersPlay.indexOf(user)] != 'Осведомитель' && success))) {
-  //       setState(() {
-  //         isRobberyFinished = true;
-  //         usersGameResult['firstRound']['result'] = success;
+  void _onRobberyResult(bool success) {
+    if (!isRobberyFinished) {
+      if (usersPlay.every((user) =>
+          (user['role'] == 1 && !success) ||
+          (usersPlay[usersPlay.indexOf(user)] != 'Осведомитель' && success))) {
+        setState(() {
+          isRobberyFinished = true;
+          usersGameResult['firstRound']['result'] = success;
 
-  //         if (roundCount < usersGameResult.length) {
-  //           roundCount++;
-  //           isRobberyStarted = false;
-  //           robberyTeam.clear();
-  //           isRobberyFinished = false;
-  //           isRobberySuccess = true;
-  //           _chooseLeader();
-  //         }
-  //       });
-  //     }
-  //   }
-  // }
+          if (roundCount < usersGameResult.length) {
+            roundCount++;
+            isRobberyStarted = false;
+            robberyTeam.clear();
+            isRobberyFinished = false;
+            isRobberySuccess = true;
+            _chooseLeader();
+          }
+        });
+      }
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
