@@ -49,7 +49,7 @@ class Room {
         .doc(docId)
         .collection('users')
         .doc()
-        .set({'name': nameUser, 'role': 0});
+        .set({'name': nameUser, 'role': 0, 'robbery': false});
   }
 
   Future<void> addUsersToPlayRoom(String name, String nameUser) async {
