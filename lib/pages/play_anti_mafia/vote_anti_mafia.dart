@@ -2,33 +2,22 @@ import 'package:flutter/material.dart';
 import 'package:turtle_fun/pages/data_mafia/vote_data.dart';
 
 class VoteAntiMafia extends StatefulWidget {
-  final String nameRoom;
-  final String nameUser;
+  String nameRoom;
+  String nameUser;
 
-  const VoteAntiMafia(
-      {Key? key, required this.nameRoom, required this.nameUser})
-      : super(key: key);
+  VoteAntiMafia({super.key, required this.nameRoom, required this.nameUser});
 
   @override
-  _VoteAntiMafiaState createState() => _VoteAntiMafiaState();
+  State<VoteAntiMafia> createState() => _VoteAntiMafiaState();
 }
 
 class _VoteAntiMafiaState extends State<VoteAntiMafia> {
-  DatabaseService databaseService =
-      DatabaseService(); // Предположим, что у вас есть класс DatabaseService
-
+  DatabaseService databaseService = DatabaseService();
   List<Map<String, dynamic>> usersPlay = []; // Список пользователей
 
   @override
   void initState() {
     super.initState();
-    DatabaseService(); // Remove this line
-    // Replace it with:
-    _loadUserPlayData(); // Call the new function that contains awaited operation
-  }
-
-  Future<void> _loadUserPlayData() async {
-    await DatabaseService(); // Wait for the completion of the asynchronous operation
   }
 
   @override
@@ -71,7 +60,7 @@ class _VoteAntiMafiaState extends State<VoteAntiMafia> {
                     color: Colors.transparent,
                   ),
                   child: const Text(
-                    'У вас столько-то голосований',
+                    'У вас столько то голосований',
                     style: TextStyle(
                       color: Colors.white,
                       fontWeight: FontWeight.bold,
@@ -95,14 +84,13 @@ class _VoteAntiMafiaState extends State<VoteAntiMafia> {
                   ),
                   child: ListView(
                     children: [
-                      for (var userPlay
-                          in usersPlay) // Заменяем databaseService.usersPlay на usersPlay
+                      for (var userPlay in databaseService.usersPlay)
                         Padding(
                           padding: EdgeInsets.symmetric(vertical: 10.0),
                           child: Center(
                             child: Text(
                               userPlay['username'],
-                              style: TextStyle(
+                              style: const TextStyle(
                                 color: Colors.white,
                                 fontWeight: FontWeight.bold,
                               ),
@@ -125,15 +113,14 @@ class _VoteAntiMafiaState extends State<VoteAntiMafia> {
                   style: ElevatedButton.styleFrom(
                     shape: const CircleBorder(),
                     elevation: 5,
-                    iconColor: const Color(0xffA1FF80),
+                    backgroundColor: const Color(0xffA1FF80),
                   ),
-                  child: Padding(
-                    // Добавляем Padding для текста кнопки
-                    padding: EdgeInsets.all(10.0),
+                  child: const Padding(
+                    padding: EdgeInsets.all(50.0),
                     child: Text(
                       'Голосовать',
                       style: TextStyle(
-                        color: Colors.white,
+                        color: Color.fromRGBO(30, 85, 65, 1),
                         fontWeight: FontWeight.bold,
                       ),
                     ),
