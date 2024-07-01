@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:turtle_fun/pages/choise_game_page.dart';
+import 'package:turtle_fun/pages/play_anti_mafia/anti_mafia_crud.dart';
 
 class GameQuestion {
   final String question;
@@ -28,9 +30,9 @@ class _TraitorGamePageState extends State<TraitorGamePage> {
   int currentUserIndex = 0;
   String currentRole = '';
   int currentRoleIndex = 0;
-  bool _showPlaceList = false;
-  String? _selectedPlace; // Храним выбранное место
-
+  bool showPlaceList = false; // Флаг для показа/скрытия списка мест
+  String? selectedPlace; // Сохраняет выбранное место
+  AntiMafiaCrud amf = new AntiMafiaCrud();
   @override
   void initState() {
     super.initState();
@@ -49,65 +51,21 @@ class _TraitorGamePageState extends State<TraitorGamePage> {
   ];
 
   void _findRole() {
-    for (String placeName in place) {
-      if (widget.usersGameResult['place'] == placeName) {
-        // Нашли место, теперь ищем роль
-        currentRole = widget.usersGameResult[placeName]
-            [widget.usersPlay[currentUserIndex]['role']];
+    if (widget.usersGameResult['place'] != '') {
+      for (String placeName in place) {
+        if (widget.usersGameResult['place'] == placeName) {
+          // Нашли место, теперь ищем роль
+          currentRole = widget.usersGameResult[placeName]
+              [widget.usersPlay[currentUserIndex]['role']];
 
-        return; // Выходим из функции, роль найдена
+          return; // Выходим из функции, роль найдена
+        }
       }
+    } else {
+      print('нет такого места');
     }
 
     // Если ни одно место не совпало
-    print('нет такого места');
-  }
-
-  void _updatePlaceAndCheckWin() {
-    // Проверяем, выбрал ли пришелец правильное место
-    if (_selectedPlace == widget.usersGameResult['place']) {
-      // Обновляем базу данных
-      // ... ваш код обновления базы данных
-      // Например, amf.updateGameResult(widget.nameRoom, {'winner': 'Пришельцы'});
-
-      // Покажем сообщение о победе
-      showDialog(
-        context: context,
-        builder: (BuildContext context) {
-          return AlertDialog(
-            title: Text('Победа!'),
-            content: Text('Пришельцы победили!'),
-            actions: <Widget>[
-              TextButton(
-                onPressed: () {
-                  Navigator.of(context).pop(); // Закрыть диалоговое окно
-                },
-                child: Text('OK'),
-              ),
-            ],
-          );
-        },
-      );
-    } else {
-      // Если выбрано неправильное место, показываем сообщение
-      showDialog(
-        context: context,
-        builder: (BuildContext context) {
-          return AlertDialog(
-            title: Text('Неверно!'),
-            content: Text('Вы выбрали неправильное место.'),
-            actions: <Widget>[
-              TextButton(
-                onPressed: () {
-                  Navigator.of(context).pop(); // Закрыть диалоговое окно
-                },
-                child: Text('OK'),
-              ),
-            ],
-          );
-        },
-      );
-    }
   }
 
   @override
@@ -148,88 +106,120 @@ class _TraitorGamePageState extends State<TraitorGamePage> {
                 ),
               ),
               SizedBox(
-                height: MediaQuery.of(context).size.height * 0.2,
+                height: MediaQuery.of(context).size.height * 0.05,
               ),
-              // Кнопка для выбора места
-              if (widget.usersPlay[currentUserIndex]['robbery'] == true)
-                ElevatedButton(
-                  style: const ButtonStyle(
-                    backgroundColor: WidgetStatePropertyAll(
-                      Color(0xffA1C096),
-                    ),
+              ElevatedButton(
+                style: const ButtonStyle(
+                  backgroundColor: WidgetStatePropertyAll(
+                    Color(0xffA1C096),
                   ),
-                  onPressed: () {
-                    setState(() {
-                      _showPlaceList = !_showPlaceList;
-                    });
-                  },
-                  child: Text('Выбрать место'),
                 ),
-
-              // Виджет с отображением списка мест (если _showPlaceList == true)
-              if (_showPlaceList)
-                Padding(
-                  padding: const EdgeInsets.all(16.0),
-                  child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          'Список мест:',
-                          style: TextStyle(
-                            fontSize: 18,
-                            fontWeight: FontWeight.bold,
-                          ),
+                onPressed: () {
+                  setState(() {
+                    showPlaceList = !showPlaceList; // Переключаем флаг
+                  });
+                },
+                child: Text('Выбрать место'),
+              ),
+              // Показываем список мест, если флаг установлен
+              if (showPlaceList)
+                Column(
+                  children: [
+                    SizedBox(height: 20), // Отступ
+                    for (String placeName in place)
+                      ElevatedButton(
+                        onPressed: () {
+                          // Логика при нажатии на место
+                          // Например, можно обновить состояние игры
+                          // и закрыть список мест
+                          print('Выбрано место: $placeName');
+                          setState(() {
+                            showPlaceList = false;
+                            selectedPlace =
+                                placeName; // Сохраняем выбранное место
+                          });
+                        },
+                        child: Text(placeName),
+                      ),
+                    SizedBox(height: 20), // Отступ
+                  ],
+                ),
+              // Кнопка "Подтвердить"
+              if (selectedPlace != null)
+                ElevatedButton(
+                  onPressed: () {
+                    print(widget.usersPlay[currentUserIndex]['robbery']);
+                    print(widget.usersGameResult['place']);
+                    // Проверяем, совпадает ли выбранное место с местом из игры
+                    if (selectedPlace == widget.usersGameResult['place'] &&
+                        widget.usersPlay[currentUserIndex]['robbery'] == true) {
+                      // Пришельцы победили
+                      showDialog(
+                        context: context,
+                        builder: (context) => AlertDialog(
+                          title: Text('Результат'),
+                          content: Text('Пришельцы победили!'),
+                          actions: [
+                            TextButton(
+                              onPressed: () {
+                                amf.updateResultInGameResults(widget.nameRoom);
+                                setState(() {
+                                  if (widget.usersGameResult['result'] ==
+                                      true) {
+                                    Navigator.push(
+                                      context,
+                                      MaterialPageRoute(
+                                        builder: (context) => ChoiseGame(
+                                          nameRoom: widget.nameRoom,
+                                          nameUser: widget.nameUser,
+                                        ),
+                                      ),
+                                    );
+                                  }
+                                });
+                              },
+                              child: Text('OK'),
+                            ),
+                          ],
                         ),
-                        SizedBox(height: 10),
-                        Expanded(
-                          flex: 1,
-                          child: Column(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                              // ... ваш контент
-                              if (_showPlaceList)
-                                Padding(
-                                  padding: const EdgeInsets.all(16.0),
-                                  child: Column(
-                                    crossAxisAlignment:
-                                        CrossAxisAlignment.start,
-                                    children: [
-                                      Text(
-                                        'Список мест:',
-                                        style: TextStyle(
-                                          fontSize: 18,
-                                          fontWeight: FontWeight.bold,
+                      );
+                    } else if (selectedPlace ==
+                            widget.usersGameResult['place'] &&
+                        widget.usersPlay[currentUserIndex]['robbery'] ==
+                            false) {
+                      // Пришельцы проиграли
+                      showDialog(
+                        context: context,
+                        builder: (context) => AlertDialog(
+                          title: Text('Результат'),
+                          content: Text('Пришельцы проиграли!'),
+                          actions: [
+                            TextButton(
+                              onPressed: () {
+                                amf.updateResultInGameResults(widget.nameRoom);
+                                setState(() {
+                                  if (widget.usersGameResult['result'] ==
+                                      true) {
+                                    Navigator.push(
+                                      context,
+                                      MaterialPageRoute(
+                                        builder: (context) => ChoiseGame(
+                                          nameRoom: widget.nameRoom,
+                                          nameUser: widget.nameUser,
                                         ),
                                       ),
-                                      SizedBox(height: 10),
-                                      // Используйте Flexible вместо Expanded в ListView.builder
-                                      Flexible(
-                                        child: ListView.builder(
-                                          itemCount: place.length,
-                                          itemBuilder: (context, index) {
-                                            return ListTile(
-                                              title: Text(
-                                                place[index],
-                                                style: TextStyle(fontSize: 16),
-                                              ),
-                                              onTap: () {
-                                                setState(() {
-                                                  _selectedPlace = place[index];
-                                                  _showPlaceList = false;
-                                                });
-                                                _updatePlaceAndCheckWin();
-                                              },
-                                            );
-                                          },
-                                        ),
-                                      ),
-                                    ],
-                                  ),
-                                ),
-                            ],
-                          ),
-                        )
-                      ]),
+                                    );
+                                  }
+                                });
+                              },
+                              child: Text('OK'),
+                            ),
+                          ],
+                        ),
+                      );
+                    }
+                  },
+                  child: Text('Подтвердить'),
                 ),
             ],
           ),

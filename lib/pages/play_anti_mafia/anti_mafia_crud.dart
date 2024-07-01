@@ -186,4 +186,32 @@ class AntiMafiaCrud {
       'place': place,
     });
   }
+
+  Future<void> updateResultInGameResults(String nameRoom) async {
+    var filter = await FirebaseFirestore.instance
+        .collection('rooms')
+        .where('name', isEqualTo: nameRoom)
+        .get();
+
+    var roomId = filter.docs.first.id;
+
+    // Получаем ссылку на документ gameResults
+    var filter2 = await FirebaseFirestore.instance
+        .collection('rooms')
+        .doc(roomId)
+        .collection('gameResults')
+        .where('name', isEqualTo: nameRoom)
+        .get();
+    var gameId = filter2.docs.first.id;
+    var gameResultsDocRef = FirebaseFirestore.instance
+        .collection('rooms')
+        .doc(roomId)
+        .collection('gameResults')
+        .doc(gameId); // Замените "gameResultsDocId" на фактическое ID документа
+
+    // Обновляем имя лидера в нужной части документа
+    await gameResultsDocRef.update({
+      'result': true,
+    });
+  }
 }
