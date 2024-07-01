@@ -48,7 +48,18 @@ class _RulesTraitorState extends State<RulesTraitor> {
         .collection('rooms')
         .where('name', isEqualTo: widget.nameRoom)
         .get();
+    Random random = new Random();
 
+    if (isPlaceCorrect == false) {
+      placeIndex = random.nextInt(place.length);
+      String placeName = place[placeIndex];
+      print('$placeName');
+
+      amf.updateGameResults(
+          widget.nameRoom, widget.nameUser, result, placeName);
+
+      isPlaceCorrect == true;
+    }
     if (roomSnapshot.docs.isNotEmpty) {
       var roomDocRef = roomSnapshot.docs.first.reference;
       var roomId = roomSnapshot.docs.first.id;
@@ -57,45 +68,29 @@ class _RulesTraitorState extends State<RulesTraitor> {
       usersPlay = usersPlaySnapshot.docs
           .map((doc) => doc.data() as Map<String, dynamic>)
           .toList();
-      if (!isUsersGameResultLoaded) {
-        // Получаем список документов gameResults
-        QuerySnapshot gameResultsSnapshot = await FirebaseFirestore.instance
-            .collection('rooms') // Обращаемся к коллекции 'rooms'
-            .doc(roomId) // Указываем ID комнаты
-            .collection('gameResults') // Указываем имя подколлекции
-            .where('name',
-                isNotEqualTo: '') // Ограничиваем выборку одним документом
-            .get();
+      FirebaseFirestore.instance
+          .collection('rooms')
+          .doc(roomId)
+          .collection('gameResults')
+          .snapshots()
+          .listen((snapshot) {
+        // Проверяем, есть ли данные в коллекции gameResults
+        if (snapshot.docs.isNotEmpty) {
+          // Получаем данные из первого документа
+          DocumentSnapshot doc = snapshot.docs.first;
 
-        if (gameResultsSnapshot.docs.isNotEmpty) {
-          // Извлекаем данные из первого документа
-          DocumentSnapshot doc = gameResultsSnapshot.docs.first;
-
-          // Записываем данные в usersGameResult
-          usersGameResult = doc.data() as Map<String, dynamic>;
-
-          isUsersGameResultLoaded = true; // Устанавливаем флаг после загрузки
+          // Обновляем usersGameResult
+          setState(() {
+            usersGameResult = doc.data() as Map<String, dynamic>;
+            isUsersGameResultLoaded = true;
+          });
         }
-      }
-
-      // Устанавливаем флаг после загрузки
+      });
     }
+
+    // Устанавливаем флаг после загрузки
+
     setState(() {});
-
-    Random random = new Random();
-
-    if (usersGameResult['place'] == '' && isPlaceCorrect == false) {
-      placeIndex = random.nextInt(place.length);
-      String placeName = place[placeIndex];
-      print('$placeName');
-      do {
-        amf.updateGameResults(
-            widget.nameRoom, widget.nameUser, result, placeName);
-      } while (usersGameResult['place'] != '');
-
-      isPlaceCorrect == true;
-    }
-
     _assignRoles();
     isUsersPlayLoaded = true;
   }

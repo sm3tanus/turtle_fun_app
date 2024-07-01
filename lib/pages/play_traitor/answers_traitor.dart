@@ -3,19 +3,12 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:turtle_fun/pages/choise_game_page.dart';
 import 'package:turtle_fun/pages/play_anti_mafia/anti_mafia_crud.dart';
 
-class GameQuestion {
-  final String question;
-  final List<String> answers;
-  final int correctIndex;
-
-  GameQuestion(this.question, this.answers, this.correctIndex);
-}
-
 class TraitorGamePage extends StatefulWidget {
   String nameRoom;
   String nameUser;
   Map<String, dynamic> usersGameResult;
   List<Map<String, dynamic>> usersPlay;
+
   TraitorGamePage(
       {required this.nameRoom,
       required this.nameUser,
@@ -51,11 +44,12 @@ class _TraitorGamePageState extends State<TraitorGamePage> {
   ];
 
   void _findRole() {
+    //widget.usersGameResult['place'] = widget.placeName;
     if (widget.usersGameResult['place'] != '') {
-      for (String placeName in place) {
-        if (widget.usersGameResult['place'] == placeName) {
+      for (String placeName2 in place) {
+        if (widget.usersGameResult['place'] == placeName2) {
           // Нашли место, теперь ищем роль
-          currentRole = widget.usersGameResult[placeName]
+          currentRole = widget.usersGameResult[placeName2]
               [widget.usersPlay[currentUserIndex]['role']];
 
           return; // Выходим из функции, роль найдена
@@ -162,8 +156,10 @@ class _TraitorGamePageState extends State<TraitorGamePage> {
                           actions: [
                             TextButton(
                               onPressed: () {
-                                amf.updateResultInGameResults(widget.nameRoom);
                                 setState(() {
+                                  amf.updateResultInGameResults(
+                                      widget.nameRoom);
+
                                   if (widget.usersGameResult['result'] ==
                                       true) {
                                     Navigator.push(
@@ -185,8 +181,7 @@ class _TraitorGamePageState extends State<TraitorGamePage> {
                       );
                     } else if (selectedPlace ==
                             widget.usersGameResult['place'] &&
-                        widget.usersPlay[currentUserIndex]['robbery'] ==
-                            false) {
+                        widget.usersPlay[currentUserIndex]['robbery'] == true) {
                       // Пришельцы проиграли
                       showDialog(
                         context: context,
