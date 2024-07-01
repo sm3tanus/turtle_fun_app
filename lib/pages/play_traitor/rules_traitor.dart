@@ -115,9 +115,7 @@ class _RulesTraitorState extends State<RulesTraitor> {
             } else {
               i--; // Если уже присвоено, пропустить итерацию
             }
-          }
-
-          // Присваиваем роли всем пользователям
+          } // Присваиваем роли всем пользователям
           for (int i = 0; i < usersPlay.length; i++) {
             int randomIndex2 = random.nextInt(10);
             usersPlay[i]['role'] = randomIndex2;
